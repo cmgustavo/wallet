@@ -1,0 +1,55 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Settings </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Settings</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>General</ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-toggle [checked]="darkMode" (ionChange)="toggleDarkMode()"
+        >Dark Mode</ion-toggle
+      >
+    </ion-item>
+    <ion-list-header>
+      <ion-label>About</ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label>Version</ion-label>
+      <ion-note slot="end">0.0.1</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>Commit</ion-label>
+      <ion-note slot="end">#xxx</ion-note>
+    </ion-item>
+    <ion-item id="open-modal">
+      <ion-label>Disclaimer</ion-label>
+      <ion-icon color="primary" name="link" slot="end"></ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <ion-modal trigger="open-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Disclaimer</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="close()" [strong]="true">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <app-disclaimer-component></app-disclaimer-component>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

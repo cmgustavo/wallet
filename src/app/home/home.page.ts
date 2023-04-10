@@ -5,13 +5,13 @@ import { ScanService, AddressFormat } from '../services/scan/scan.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-tab1',
-  templateUrl: 'tab1.page.html',
-  styleUrls: ['tab1.page.scss'],
+  selector: 'app-home',
+  templateUrl: 'home.page.html',
+  styleUrls: ['home.page.scss'],
   standalone: true,
   imports: [IonicModule, ExploreContainerComponent, CommonModule],
 })
-export class Tab1Page {
+export class HomePage {
   constructor(
     public scanService: ScanService,
     public actionSheetController: ActionSheetController
