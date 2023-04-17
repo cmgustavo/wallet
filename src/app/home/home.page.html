@@ -22,6 +22,12 @@
   </ion-grid>
 
   <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+    <ion-fab-button (click)="createWallet()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="center" slot="fixed" hidden>
     <ion-fab-button (click)="scanAddress()">
       <ion-icon name="camera"></ion-icon>
     </ion-fab-button>

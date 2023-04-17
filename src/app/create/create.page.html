@@ -1,0 +1,42 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button default-href="#/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Create a Wallet</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-back-button default-href="#/home"></ion-back-button>
+      </ion-buttons>
+      <ion-title size="large">Create a Wallet</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-card>
+    <ion-card-header>
+      Enter a name for your wallet and select a network
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Name</ion-label>
+        <ion-input [(ngModel)]="name"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Network</ion-label>
+        <ion-select [(ngModel)]="selectedNetwork">
+          <ion-select-option value="Livenet">Livenet</ion-select-option>
+          <ion-select-option value="Testnet">Testnet</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+  <div class="submit-container">
+    <ion-button expand="block" (click)="submitRequest()">Create</ion-button>
+  </div>
+
+</ion-content>

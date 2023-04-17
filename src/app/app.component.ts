@@ -1,4 +1,4 @@
-import { Component, EnvironmentInjector, inject } from '@angular/core';
+import {Component, EnvironmentInjector, inject, NgModule} from '@angular/core';
 import { IonicModule, Platform } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import {ThemeService} from "./services/theme/theme.service";
