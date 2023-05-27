@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
 import { IonicModule, ActionSheetController } from '@ionic/angular';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
-import { ScanService, AddressFormat } from '../services/scan/scan.service';
 import { CommonModule } from '@angular/common';
-import {navigate} from "ionicons/icons";
 import {Router} from "@angular/router";
+import {Wallet, WalletService} from "../services/wallet/wallet.service";
 
 @Component({
   selector: 'app-home',
@@ -15,29 +14,25 @@ import {Router} from "@angular/router";
 })
 export class HomePage {
   constructor(
-    public scanService: ScanService,
     public actionSheetController: ActionSheetController,
+    public walletService: WalletService,
     private router: Router
   ) {}
 
   async ngOnInit() {
-    await this.scanService.loadSaved();
+    await this.walletService.loadSaved();
   }
 
-  scanAddress() {
-    this.scanService.scanAddress();
-  }
-
-  public async showActionSheet(address: AddressFormat, position: number) {
+  public async showActionSheet(position: number) {
     const actionSheet = await this.actionSheetController.create({
-      header: 'Photos',
+      header: 'Wallet',
       buttons: [
         {
           text: 'Delete',
           role: 'destructive',
           icon: 'trash',
           handler: () => {
-            this.scanService.deleteAddress(address, position);
+            this.walletService.deleteWallet(position);
           },
         },
         {

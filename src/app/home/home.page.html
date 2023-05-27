@@ -13,23 +13,16 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-grid>
-    <ion-row>
-      <ion-col size="6" *ngFor="let address of scanService.addresses; index as position">
-        <ion-img [src]="address.webviewPath" (click)="showActionSheet(address, position)"></ion-img>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <ion-list *ngIf="walletService.wallets.length">
+    <ion-item (click)="showActionSheet(position)" *ngFor="let wallet of walletService.wallets; index as position">
+      <ion-label>{{wallet.name}} ({{wallet.network}})</ion-label>
+      <ion-note slot="end">$ 0.00</ion-note>
+    </ion-item>
+  </ion-list>
 
   <ion-fab vertical="bottom" horizontal="center" slot="fixed">
     <ion-fab-button (click)="createWallet()">
       <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-
-  <ion-fab vertical="bottom" horizontal="center" slot="fixed" hidden>
-    <ion-fab-button (click)="scanAddress()">
-      <ion-icon name="camera"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>

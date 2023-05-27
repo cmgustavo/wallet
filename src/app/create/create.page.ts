@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import {StorageService} from "../services/storage/storage.service";
 import {WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 
@@ -15,30 +14,28 @@ import {Router} from "@angular/router";
 })
 export class CreatePage implements OnInit {
   public name: string = '';
-  public selectedNetwork: string = "Livenet";
+  public selectedNetwork: string = 'livenet';
 
   constructor(
     private router: Router,
-    public storageService: StorageService,
     public walletService: WalletService
   ) { }
 
-  ngOnInit() {
-  }
+  async ngOnInit() {}
 
   submitRequest() {
     // Here, you can write the logic to submit the request
     console.log(`Name: ${this.name}`);
     console.log(`Network: ${this.selectedNetwork}`);
 
-    const isTestnet = this.selectedNetwork === 'Testnet';
+    const isTestnet = this.selectedNetwork === 'testnet';
     // Create wallet
-    this.walletService.createWallet(undefined, isTestnet).then((wallet) => {
+    this.walletService.createWallet(undefined, isTestnet, this.name).then((wallet) => {
       console.log('Wallet created', wallet);
     });
 
 
-    this.router.navigate(['/home']);
+    this.router.navigate(['/tabs/home']).then(r => console.log(r))
   }
 
 }

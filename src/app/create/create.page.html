@@ -23,14 +23,12 @@
     </ion-card-header>
     <ion-card-content>
       <ion-item>
-        <ion-label position="stacked">Name</ion-label>
-        <ion-input [(ngModel)]="name"></ion-input>
+        <ion-input label="Name" [(ngModel)]="name"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-label position="stacked">Network</ion-label>
-        <ion-select [(ngModel)]="selectedNetwork">
-          <ion-select-option value="Livenet">Livenet</ion-select-option>
-          <ion-select-option value="Testnet">Testnet</ion-select-option>
+        <ion-select label="Network" placeholder="Select Network" [(ngModel)]="selectedNetwork">
+          <ion-select-option value="livenet">Livenet</ion-select-option>
+          <ion-select-option value="testnet">Testnet</ion-select-option>
         </ion-select>
       </ion-item>
     </ion-card-content>

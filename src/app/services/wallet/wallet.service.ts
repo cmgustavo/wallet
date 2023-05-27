@@ -3,15 +3,25 @@ import * as bip39 from 'bip39';
 import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
+import {Preferences} from "@capacitor/preferences";
+
+export interface Wallet {
+  mnemonic: string;
+  name: string;
+  address: string;
+  network: 'testnet' | 'livenet';
+}
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
+  public wallets: Wallet[] = [];
+  private WALLET_STORAGE: string = 'wallet';
   private bip32 = BIP32Factory(ecc);
 
   constructor() { }
 
-  public createWallet  = async (derivePath: string = "m/44'/0'/0'", isTestnet: boolean = true): Promise<{ mnemonic: string, address: string | undefined }> => {
+  public createWallet  = async (derivePath: string = "m/44'/0'/0'", isTestnet: boolean = true, name: string): Promise<{ mnemonic: string, address: string | undefined }> => {
     // Generate a new BIP39 mnemonic
     const mnemonic: string = bip39.generateMnemonic();
 
@@ -39,10 +49,40 @@ export class WalletService {
       network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
     });
 
+    if (!address) throw new Error('Could not generate address');
+
+    // Save the mnemonic and address to storage
+    this.wallets.push({mnemonic, name, address, network: isTestnet ? 'testnet' : 'livenet'});
+    this.saveWallet();
+
     // Return the mnemonic and address as an object
     return {
       mnemonic: mnemonic,
       address: address
     };
+  }
+
+  private saveWallet = () => {
+    const value = JSON.stringify(this.wallets);
+    Preferences.set({
+      key: this.WALLET_STORAGE,
+      value: value,
+    });
+  };
+  public loadSaved = async () => {
+    const { value } = await Preferences.get({ key: this.WALLET_STORAGE });
+    if (value) {
+      this.wallets = JSON.parse(value);
+    } else {
+      this.wallets = [];
+    }
+  };
+
+  public deleteWallet = async (position: number) => {
+    this.wallets.splice(position, 1);
+    Preferences.set({
+      key: this.WALLET_STORAGE,
+      value: JSON.stringify(this.wallets),
+    });
   }
 }
