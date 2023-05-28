@@ -1,0 +1,19 @@
+<div *ngIf="transactions?.length; then ListTx else NoTx"></div>
+<ng-template #ListTx>
+  <ion-list>
+    <ion-label>
+      <h3>Transactions</h3>
+    </ion-label>
+    <ion-item *ngFor="let tx of transactions">
+      <ion-label>
+        [{{tx.type}}] {{tx.notes}}
+      </ion-label>
+      <ion-note slot="end">{{tx.amount}}</ion-note>
+    </ion-item>
+  </ion-list>
+</ng-template>
+<ng-template #NoTx>
+  <ion-card color="warning">
+    <ion-card-content>No transactions</ion-card-content>
+  </ion-card>
+</ng-template>

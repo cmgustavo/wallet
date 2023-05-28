@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title> Settings </ion-title>
+    <ion-title> Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -17,9 +17,21 @@
     </ion-list-header>
     <ion-item>
       <ion-toggle [checked]="darkMode" (ionChange)="toggleDarkMode()"
-        >Dark Mode</ion-toggle
+      >Dark Mode
+      </ion-toggle
       >
     </ion-item>
+    <div *ngIf="walletService.wallet">
+      <ion-list-header>
+        <ion-label>Wallet</ion-label>
+      </ion-list-header>
+      <ion-item button (click)="openAddress()">
+        <ion-label>List Addresses</ion-label>
+      </ion-item>
+      <ion-item button (click)="deleteWallet()">
+        <ion-label color="danger">Delete</ion-label>
+      </ion-item>
+    </div>
     <ion-list-header>
       <ion-label>About</ion-label>
     </ion-list-header>
@@ -31,25 +43,24 @@
       <ion-label>Commit</ion-label>
       <ion-note slot="end">#xxx</ion-note>
     </ion-item>
-    <ion-item id="open-modal">
+    <ion-item button (click)="showDisclaimer()">
       <ion-label>Disclaimer</ion-label>
-      <ion-icon color="primary" name="link" slot="end"></ion-icon>
     </ion-item>
   </ion-list>
 
-  <ion-modal trigger="open-modal">
+  <ion-modal [isOpen]="isModalDisclaimerOpen">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Disclaimer</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="close()" [strong]="true">Close</ion-button>
-          </ion-buttons>
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
         <app-disclaimer-component></app-disclaimer-component>
       </ion-content>
+      <ion-footer class="ion-no-border">
+        <ion-button (click)="close()" expand="block">Accept</ion-button>
+      </ion-footer>
     </ng-template>
   </ion-modal>
 </ion-content>

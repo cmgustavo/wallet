@@ -30,12 +30,12 @@ export class CreatePage implements OnInit {
 
     const isTestnet = this.selectedNetwork === 'testnet';
     // Create wallet
-    this.walletService.createWallet(undefined, isTestnet, this.name).then((wallet) => {
+    this.walletService.createWallet(isTestnet, this.name).then((wallet) => {
       console.log('Wallet created', wallet);
     });
 
 
-    this.router.navigate(['/tabs/home']).then(r => console.log(r))
+    this.router.navigate(['/tabs/home']);
   }
 
 }

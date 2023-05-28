@@ -1,0 +1,26 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button default-href="#/settings"></ion-back-button>
+    </ion-buttons>
+    <ion-title>List Addresses</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-back-button default-href="#/settings"></ion-back-button>
+      </ion-buttons>
+      <ion-title size="large">List Addresses</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-card *ngIf="walletService.wallet">
+    <ion-card-content>
+      <app-addresses-component [addresses]="walletService.wallet.addresses"></app-addresses-component>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

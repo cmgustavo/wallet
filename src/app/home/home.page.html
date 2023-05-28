@@ -13,16 +13,18 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-list *ngIf="walletService.wallets.length">
-    <ion-item (click)="showActionSheet(position)" *ngFor="let wallet of walletService.wallets; index as position">
-      <ion-label>{{wallet.name}} ({{wallet.network}})</ion-label>
-      <ion-note slot="end">$ 0.00</ion-note>
-    </ion-item>
-  </ion-list>
+  <ion-card *ngIf="walletService.wallet">
+    <ion-card-header>
+      <ion-card-subtitle>{{walletService.wallet.network}}</ion-card-subtitle>
+      <ion-card-title>{{walletService.wallet.name}}</ion-card-title>
+    </ion-card-header>
 
-  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
-    <ion-fab-button (click)="createWallet()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    <ion-card-content>
+      <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="!walletService.wallet" class="main-centered">
+    <ion-button (click)="createWallet()">Create Wallet</ion-button>
+  </div>
 </ion-content>
