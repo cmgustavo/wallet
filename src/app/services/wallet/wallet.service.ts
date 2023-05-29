@@ -8,6 +8,12 @@ import {Preferences} from "@capacitor/preferences";
 type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
 
+export interface Balance {
+  total: number;
+  confirmed: number;
+  unconfirmed: number;
+  coin: string;
+}
 export interface Address {
   address: string;
   balance: number;
@@ -125,5 +131,12 @@ export class WalletService {
 
   private getDerivationPath = (index: number = 0, change: number = 0) => {
     return `m/44'/${change}'/${index}'`;
+  }
+
+  public getLastAddress = () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses not initialized');
+    return addresses[addresses.length - 1];
   }
 }

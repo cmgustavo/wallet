@@ -10,4 +10,40 @@
       <ion-title size="large">Receive</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <div *ngIf="walletService.wallet?.addresses; then ShowAddress else NoAddress"></div>
+  <ng-template #ShowAddress>
+    <ion-card>
+      <ion-card-content class="ion-text-center">
+        <qr-code value="{{walletService.getLastAddress().address}}" size="300" errorCorrectionLevel="M"
+                 centerImageSrc="../../assets/bitcoin-btc-logo.svg"></qr-code>
+      </ion-card-content>
+
+      <ion-grid>
+        <ion-row>
+          <ion-card color="warning">
+            <ion-card-content>
+              Send only BTC to this address. Sending any other coin or token to this address may result in the loss of
+              your deposit.
+            </ion-card-content>
+          </ion-card>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <ion-button fill="clear">Refresh</ion-button>
+          </ion-col>
+          <ion-col offset="2" class="ion-text-end">
+            <ion-button fill="clear" color="secondary">Share</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+    </ion-card>
+  </ng-template>
+  <ng-template #NoAddress>
+    <ion-card color="warning">
+      <ion-card-content>No Addresses</ion-card-content>
+    </ion-card>
+  </ng-template>
+
 </ion-content>

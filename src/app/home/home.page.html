@@ -20,9 +20,13 @@
     </ion-card-header>
 
     <ion-card-content>
-      <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
+      Total Balance: TODO
     </ion-card-content>
   </ion-card>
+
+  <div *ngIf="walletService.wallet">
+    <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
+  </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">
     <ion-button (click)="createWallet()">Create Wallet</ion-button>
