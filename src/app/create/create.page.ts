@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {IonicModule, ToastController} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 
@@ -18,10 +18,13 @@ export class CreatePage implements OnInit {
 
   constructor(
     private router: Router,
+    private toastCtrl: ToastController,
     public walletService: WalletService
-  ) { }
+  ) {
+  }
 
-  async ngOnInit() {}
+  async ngOnInit() {
+  }
 
   submitRequest() {
     // Here, you can write the logic to submit the request
@@ -30,10 +33,15 @@ export class CreatePage implements OnInit {
 
     const isTestnet = this.selectedNetwork === 'testnet';
     // Create wallet
-    this.walletService.createWallet(isTestnet, this.name).then((wallet) => {
+    this.walletService.createWallet(isTestnet, this.name).then(async (wallet) => {
       console.log('Wallet created', wallet);
+      const toast = await this.toastCtrl.create({
+        message: 'Wallet "' + this.name + '" created successfully',
+        duration: 2500,
+        position: 'top'
+      });
+      await toast.present();
     });
-
 
     this.router.navigate(['/tabs/home']);
   }

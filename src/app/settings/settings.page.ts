@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ActionSheetController, IonicModule} from '@ionic/angular';
+import {ActionSheetController, IonicModule, ToastController} from '@ionic/angular';
 import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component';
 import {ThemeService} from '../services/theme/theme.service';
 import {WalletService} from '../services/wallet/wallet.service';
@@ -20,6 +20,7 @@ export class SettingsPage implements OnInit {
   constructor(
     private themeService: ThemeService,
     private router: Router,
+    private toastCtrl: ToastController,
     public actionSheetController: ActionSheetController,
     public walletService: WalletService
   ) {
@@ -55,8 +56,15 @@ export class SettingsPage implements OnInit {
           text: 'Delete',
           role: 'destructive',
           icon: 'trash',
-          handler: () => {
-            this.walletService.deleteWallet();
+          handler: async () => {
+            await this.walletService.deleteWallet();
+            console.log('Wallet deleted');
+            const toast = await this.toastCtrl.create({
+              message: 'Wallet deleted successfully',
+              duration: 2500,
+              position: 'top'
+            });
+            await toast.present();
           },
         },
         {
