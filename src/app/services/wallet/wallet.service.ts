@@ -5,7 +5,7 @@ import * as ecc from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import {Preferences} from "@capacitor/preferences";
 
-type Network = 'testnet' | 'livenet';
+export type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
 
 export interface Balance {
@@ -99,7 +99,7 @@ export class WalletService {
       }],
       transactions: []
     };
-    this.saveWallet();
+    await this.saveWallet();
 
     // Return the mnemonic and address as an object
     return {
@@ -108,9 +108,46 @@ export class WalletService {
     };
   }
 
-  private saveWallet = () => {
+  public importWallet = async (mnemonic: string, isTestnet: boolean = false, name: string): Promise<{
+    address: string | undefined
+  }> => {
+    if (!bip39.validateMnemonic(mnemonic)) {
+      throw new Error('Invalid mnemonic');
+    }
+    const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(mnemonic));
+    const publicKey = root.derivePath(this.getDerivationPath()).publicKey;
+
+    const {address} = bitcoin.payments.p2pkh({
+      pubkey: publicKey,
+      network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    });
+
+    if (!address) throw new Error('Could not generate address');
+
+    // Save the mnemonic and address to storage
+    this.wallet = {
+      mnemonic,
+      name,
+      network: isTestnet ? 'testnet' : 'livenet',
+      addresses: [{
+        address: address,
+        balance: 0,
+        index: 0,
+        change: 0
+      }],
+      transactions: []
+    };
+    await this.saveWallet();
+
+    // Return the mnemonic and address as an object
+    return {
+      address: address
+    };
+  }
+
+  private saveWallet = async () => {
     const value = JSON.stringify(this.wallet);
-    Preferences.set({
+    await Preferences.set({
       key: this.WALLET_STORAGE,
       value: value,
     });
@@ -124,7 +161,7 @@ export class WalletService {
 
   public deleteWallet = async () => {
     delete this.wallet;
-    Preferences.remove({
+    await Preferences.remove({
       key: this.WALLET_STORAGE,
     });
   }
@@ -136,7 +173,36 @@ export class WalletService {
   public getLastAddress = () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
     const addresses = this.wallet.addresses;
-    if (!addresses) throw new Error('Addresses not initialized');
+    if (!addresses) throw new Error('Addresses no generated');
     return addresses[addresses.length - 1];
+  }
+
+  public getNewAddress = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    const address = await this.createAddress(addresses.length, 0);
+    addresses.push({
+      address: address,
+      balance: 0,
+      index: addresses.length,
+      change: 0
+    });
+    await this.saveWallet();
+    return address;
+  }
+
+  private createAddress = async (index: number, change: number) => {
+    if (!this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
+    const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(this.wallet.mnemonic));
+    const derivePath = this.getDerivationPath(index, change);
+    const addressNode = root.derivePath(derivePath);
+    const publicKey = addressNode.publicKey;
+    const {address} = bitcoin.payments.p2pkh({
+      pubkey: publicKey,
+      network: this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    });
+    if (!address) throw new Error('Could not generate address');
+    return address;
   }
 }

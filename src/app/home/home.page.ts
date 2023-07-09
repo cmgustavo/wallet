@@ -27,4 +27,8 @@ export class HomePage implements OnInit {
   createWallet() {
     this.router.navigate(['/create']);
   }
+
+  importWallet() {
+    this.router.navigate(['/import']);
+  }
 }

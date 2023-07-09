@@ -1,0 +1,14 @@
+<div *ngIf="mnemonic; then ShowBackup else BackupRemoved"></div>
+<ng-template #ShowBackup>
+  <ion-text class="mnemonic-text">
+    {{mnemonic}}
+  </ion-text>
+</ng-template>
+<ng-template #BackupRemoved>
+  <ion-card color="warning">
+    <ion-card-content>Your mnemonic has been removed for security.</ion-card-content>
+  </ion-card>
+</ng-template>
+
+
+

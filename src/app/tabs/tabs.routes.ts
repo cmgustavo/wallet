@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
+import {BackupPage} from "../backup/backup.page";
+import {AddressPage} from "../address/address.page";
 
 export const routes: Routes = [
   {
@@ -27,9 +29,22 @@ export const routes: Routes = [
           import('../settings/settings.page').then((m) => m.SettingsPage),
       },
       {
-        path: '',
-        redirectTo: '/tabs/home',
-        pathMatch: 'full',
+        path: 'settings/backup',
+        children: [
+          {
+            path: '',
+            component: BackupPage,
+          },
+        ],
+      },
+      {
+        path: 'settings/address',
+        children: [
+          {
+            path: '',
+            component: AddressPage,
+          }
+        ],
       },
     ],
   },

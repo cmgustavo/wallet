@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button default-href="#/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>Create a Wallet</ion-title>
+    <ion-title>Import a Wallet</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,13 +13,13 @@
       <ion-buttons slot="start">
         <ion-back-button default-href="#/home"></ion-back-button>
       </ion-buttons>
-      <ion-title size="large">Create a Wallet</ion-title>
+      <ion-title size="large">Import a Wallet</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-card>
     <ion-card-header>
-      Enter a name for your wallet and select a network
+      Enter 12 words to import your wallet
     </ion-card-header>
     <ion-card-content>
       <ion-item>
@@ -31,10 +31,13 @@
           <ion-select-option value="testnet">Testnet</ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-item>
+        <ion-textarea label="Words" [(ngModel)]="mnemonic"></ion-textarea>
+      </ion-item>
     </ion-card-content>
   </ion-card>
 </ion-content>
 
 <ion-footer class="ion-no-border">
-  <ion-button expand="block" (click)="submitRequest()">Create</ion-button>
+  <ion-button expand="block" (click)="submitRequest()">Import</ion-button>
 </ion-footer>

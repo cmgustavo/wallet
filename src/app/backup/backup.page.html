@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button default-href="#/settings"></ion-back-button>
     </ion-buttons>
-    <ion-title>Addresses</ion-title>
+    <ion-title>Backup</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,13 +13,19 @@
       <ion-buttons slot="start">
         <ion-back-button default-href="#/settings"></ion-back-button>
       </ion-buttons>
-      <ion-title size="large">Addresses</ion-title>
+      <ion-title size="large">Backup</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-card *ngIf="walletService.wallet">
     <ion-card-content>
-      <app-addresses-component [addresses]="walletService.wallet.addresses"></app-addresses-component>
+      <app-backup-component [mnemonic]="walletService.wallet.mnemonic"></app-backup-component>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="walletService.wallet" color="warning">
+    <ion-card-content>
+      Keep this mnemonic safe. It is the only way to recover your wallet. If you lose it, you lose your wallet.
     </ion-card-content>
   </ion-card>
 

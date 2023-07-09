@@ -18,6 +18,12 @@
         <qr-code value="{{walletService.getLastAddress().address}}" size="300" errorCorrectionLevel="M"
                  centerImageSrc="../../assets/bitcoin-btc-logo.svg"></qr-code>
       </ion-card-content>
+      <ion-text class="ion-text-center">
+        <p class="overflow-dots" (click)="copyAddress()">
+          <ion-icon name="copy-outline"></ion-icon>
+          {{walletService.getLastAddress().address}}
+        </p>
+      </ion-text>
 
       <ion-grid>
         <ion-row>
@@ -30,7 +36,7 @@
         </ion-row>
         <ion-row>
           <ion-col>
-            <ion-button fill="clear">Refresh</ion-button>
+            <ion-button fill="clear" (click)="walletService.getNewAddress()">Refresh</ion-button>
           </ion-col>
           <ion-col offset="2" class="ion-text-end">
             <ion-button fill="clear" color="secondary">Share</ion-button>

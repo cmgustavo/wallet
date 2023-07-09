@@ -2,16 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
-import {AddressesComponent} from "../components/addresses/addresses.component";
+import {BackupComponent} from "../components/backup/backup.component";
 
 @Component({
-  selector: 'app-address',
-  templateUrl: './address.page.html',
-  styleUrls: ['./address.page.scss'],
+  selector: 'app-backup',
+  templateUrl: './backup.page.html',
+  styleUrls: ['./backup.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, AddressesComponent]
+  imports: [IonicModule, CommonModule, BackupComponent]
 })
-export class AddressPage implements OnInit {
+export class BackupPage implements OnInit {
 
   constructor(
     public walletService: WalletService

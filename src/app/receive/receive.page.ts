@@ -19,4 +19,12 @@ export class ReceivePage implements OnInit {
   async ngOnInit() {
     await this.walletService.loadSaved();
   }
+
+  public copyAddress = async () => {
+    const address = this.walletService.getLastAddress();
+    if (address) {
+      console.log('##### address.address', address.address);
+      await navigator.clipboard.writeText(address.address);
+    }
+  }
 }

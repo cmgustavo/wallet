@@ -29,6 +29,17 @@
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">
-    <ion-button (click)="createWallet()">Create Wallet</ion-button>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-button (click)="createWallet()">Create Wallet</ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button fill="outline" (click)="importWallet()">Import an existent Wallet</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </div>
 </ion-content>

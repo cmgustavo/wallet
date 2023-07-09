@@ -1,0 +1,9 @@
+.overflow-dots {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  height: 2rem;
+  padding: 0 0.5rem;
+  cursor: pointer;
+}
