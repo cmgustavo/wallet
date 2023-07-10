@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule} from '@ionic/angular';
+import {IonicModule, Platform} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {QrCodeModule} from "ng-qrcode";
+import { Clipboard } from '@capacitor/clipboard';
 
 @Component({
   selector: 'app-receive',
@@ -13,7 +14,7 @@ import {QrCodeModule} from "ng-qrcode";
   imports: [IonicModule, CommonModule, FormsModule, QrCodeModule],
 })
 export class ReceivePage implements OnInit {
-  constructor(public walletService: WalletService) {
+  constructor(public walletService: WalletService, public platform: Platform) {
   }
 
   async ngOnInit() {
@@ -23,8 +24,12 @@ export class ReceivePage implements OnInit {
   public copyAddress = async () => {
     const address = this.walletService.getLastAddress();
     if (address) {
-      console.log('##### address.address', address.address);
-      await navigator.clipboard.writeText(address.address);
+      console.log('Copied address: ', address.address);
+      if (this.platform.is('capacitor')) {
+        await Clipboard.write({string: address.address});
+      } else {
+        await navigator.clipboard.writeText(address.address);
+      }
     }
   }
 }
