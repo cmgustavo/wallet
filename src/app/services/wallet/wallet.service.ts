@@ -26,7 +26,7 @@ export interface Transaction {
   amount: number;
   notes: string;
   date: Date;
-  confirmations: number;
+  confirmed: boolean;
   fee: number;
   type: TransactionType;
 }
@@ -35,6 +35,7 @@ export interface Wallet {
   mnemonic: string | undefined;
   name: string | undefined;
   network: Network;
+  balance: number | undefined;
   addresses: Address[] | undefined;
   transactions: Transaction[] | undefined;
 }
@@ -90,6 +91,7 @@ export class WalletService {
     this.wallet = {
       mnemonic,
       name,
+      balance: 0,
       network: isTestnet ? 'testnet' : 'livenet',
       addresses: [{
         address: address,
@@ -128,6 +130,7 @@ export class WalletService {
     this.wallet = {
       mnemonic,
       name,
+      balance: 0,
       network: isTestnet ? 'testnet' : 'livenet',
       addresses: [{
         address: address,
@@ -170,6 +173,57 @@ export class WalletService {
     return `m/44'/${change}'/${index}'`;
   }
 
+  private getTransactionsByAddress = async (address: string): Promise<Transaction[]> => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/address/${address}/txs`;
+    const response = await fetch(url);
+    const transactions = await response.json();
+    return transactions;
+  }
+
+  private getTransaction = async (txid: string, address: string): Promise<Transaction | undefined> => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/tx/${txid}`;
+    const response = await fetch(url);
+    const transaction = await response.json();
+    const type = transaction.vout.find((input: any) => {
+      return input.scriptpubkey_address === address ? 'received' : 'sent';
+    });
+    const tx: Transaction = {
+      id: transaction.txid,
+      amount: transaction.vout.reduce((previousValue: number, currentValue: any) => {
+        return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
+      }, 0),
+      notes: '',
+      date: new Date(transaction.status.block_time * 1000),
+      confirmed: transaction.status.confirmed,
+      fee: transaction.fee,
+      type: type,
+    };
+    return tx;
+  }
+
+  public updateTransactions = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    const txs: Transaction[] = this.wallet.transactions || [];
+    const promises = addresses.map(async (address) => {
+      const transactions = await this.getTransactionsByAddress(address.address);
+      const promises = transactions.map(async (transaction: any) => {
+        const tx = await this.getTransaction(transaction.txid, address.address);
+        // Only insert if not exists in wallet transactions array
+        if (tx && !txs.find((t) => t.id === tx.id)) {
+          txs.push(tx);
+        }
+      });
+      await Promise.all(promises);
+    });
+    await Promise.all(promises);
+    this.wallet.transactions = txs;
+    await this.saveWallet();
+  }
+
   public getLastAddress = () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
     const addresses = this.wallet.addresses;
@@ -190,6 +244,39 @@ export class WalletService {
     });
     await this.saveWallet();
     return address;
+  }
+
+  private getAddressBalance = async (address: string): Promise<number> => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/address/${address}/utxo`;
+    const response = await fetch(url);
+    const utxos = await response.json();
+    const balance = utxos.reduce((previousValue: number, currentValue: any) => {
+      return previousValue + currentValue.value;
+    }, 0);
+    return balance;
+  }
+
+  public updateTotalBalance = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    const promises = addresses.map(async (address) => {
+      const balance = await this.getAddressBalance(address.address);
+      address.balance = balance;
+    });
+    await Promise.all(promises);
+    this.wallet.balance = this.calculateTotalBalance();
+    await this.saveWallet();
+  }
+
+  private calculateTotalBalance = (): number => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    return addresses.reduce((previousValue: number, currentValue: Address) => {
+      return previousValue + currentValue.balance;
+    }, 0);
   }
 
   private createAddress = async (index: number, change: number) => {

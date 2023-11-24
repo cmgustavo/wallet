@@ -22,6 +22,8 @@ export class HomePage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+    await this.walletService.updateTotalBalance();
+    await this.walletService.updateTransactions();
   }
 
   createWallet() {

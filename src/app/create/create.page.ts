@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, isDevMode, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, ToastController} from '@ionic/angular';
@@ -21,6 +21,11 @@ export class CreatePage implements OnInit {
     private toastCtrl: ToastController,
     public walletService: WalletService
   ) {
+    if (isDevMode()) {
+      console.log('Development!');
+    } else {
+      console.log('Production!');
+    }
   }
 
   async ngOnInit() {

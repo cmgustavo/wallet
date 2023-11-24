@@ -1,9 +1,6 @@
 <div *ngIf="addresses?.length; then ListAddresses else NoAddresses"></div>
 <ng-template #ListAddresses>
   <ion-list>
-    <ion-label>
-      <h3>Addresses</h3>
-    </ion-label>
     <ion-item *ngFor="let address of addresses">
       <ion-label>
         [{{address.index}}] {{address.address}} {{address.change !== 0 ? 'Change' : null}}
