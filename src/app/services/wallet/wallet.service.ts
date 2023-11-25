@@ -25,7 +25,8 @@ export interface Transaction {
   id: string;
   amount: number;
   notes: string;
-  date: Date;
+  date: string;
+  block_time: number;
   confirmed: boolean;
   fee: number;
   type: TransactionType;
@@ -187,18 +188,20 @@ export class WalletService {
     const response = await fetch(url);
     const transaction = await response.json();
     const type = transaction.vout.find((input: any) => {
-      return input.scriptpubkey_address === address ? 'received' : 'sent';
+      return input.scriptpubkey_address === address;
     });
+    const date = new Date(transaction.status.block_time * 1000);
     const tx: Transaction = {
       id: transaction.txid,
       amount: transaction.vout.reduce((previousValue: number, currentValue: any) => {
         return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
       }, 0),
       notes: '',
-      date: new Date(transaction.status.block_time * 1000),
+      date: typeof date === 'object' && date !== null ? date.toLocaleString() : new Date().toLocaleString(),
+      block_time: transaction.status.block_time,
       confirmed: transaction.status.confirmed,
       fee: transaction.fee,
-      type: type,
+      type: type ? 'received' : 'sent',
     };
     return tx;
   }
@@ -220,7 +223,16 @@ export class WalletService {
       await Promise.all(promises);
     });
     await Promise.all(promises);
-    this.wallet.transactions = txs;
+    // Order by more recent transaction
+    this.wallet.transactions = txs.sort((a, b) => {
+      return b.block_time - a.block_time;
+    });
+    await this.saveWallet();
+  }
+
+  public clearTransactions = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    this.wallet.transactions = [];
     await this.saveWallet();
   }
 

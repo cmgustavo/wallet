@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button default-href="#/settings"></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="primary">
+      <ion-button (click)="openOptions()">
+        <ion-icon slot="icon-only" ios="ellipsis-horizontal" md="ellipsis-vertical"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Transactions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-back-button default-href="#/settings"></ion-back-button>
+      </ion-buttons>
+      <ion-buttons slot="primary">
+        <ion-button (click)="openOptions()">
+          <ion-icon slot="icon-only" ios="ellipsis-horizontal" md="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title size="large">Transactions</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-card *ngIf="walletService.wallet">
+    <ion-card-content>
+        <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

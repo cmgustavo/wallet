@@ -39,6 +39,10 @@ export class SettingsPage implements OnInit {
     this.router.navigate(['/tabs/settings/address']);
   }
 
+  openTransaction() {
+    this.router.navigate(['/tabs/settings/transaction']);
+  }
+
   close() {
     this.isModalDisclaimerOpen = false;
   }

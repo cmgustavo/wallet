@@ -37,6 +37,8 @@ export class ImportPage implements OnInit {
     // Import wallet
     this.walletService.importWallet(this.mnemonic, isTestnet, this.name).then(async (wallet) => {
       console.log('Wallet imported', wallet);
+      await this.walletService.updateTotalBalance();
+      await this.walletService.updateTransactions();
       // Show toast
       const toast = await this.toastCtrl.create({
         message: 'Wallet imported successfully',

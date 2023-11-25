@@ -1,21 +1,31 @@
 <div *ngIf="transactions?.length; then ListTx else NoTx"></div>
 <ng-template #ListTx>
-  <ion-card-content>
+
     <ion-list>
-      <ion-label>
-        <h3>Transactions</h3>
-      </ion-label>
-      <ion-item *ngFor="let tx of transactions">
+      <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
         <ion-label>
-          [{{tx.type}}] {{tx.notes}} {{tx.date}} Fee: {{tx.fee}}
+          [{{tx.type}}] {{tx.date}}
         </ion-label>
         <ion-note slot="end">{{tx.amount}}</ion-note>
       </ion-item>
     </ion-list>
-  </ion-card-content>
+
+  <ion-modal [isOpen]="isModalTransactionDetailsOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="primary">
+            <ion-button (click)="closeTransactionDetails()">Close</ion-button>
+          </ion-buttons>
+          <ion-title>Transaction Details</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <app-transaction-details-component [tx]="currentTx"></app-transaction-details-component>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ng-template>
 <ng-template #NoTx>
-  <ion-card color="medium">
-    <ion-card-content>No transactions</ion-card-content>
-  </ion-card>
+  No transactions.
 </ng-template>

@@ -16,15 +16,24 @@
   <ion-card *ngIf="walletService.wallet">
     <ion-card-header>
       <ion-card-subtitle>{{walletService.wallet.network}}</ion-card-subtitle>
-      <ion-card-title>{{walletService.wallet.name}}</ion-card-title>
+      <ion-card-title>
+        <ion-text color="primary">
+        {{walletService.wallet.name}}
+        </ion-text>
+      </ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
-      Total Balance: {{walletService.wallet.balance}}
+      <ion-text>
+        {{walletService.wallet.balance}}
+      </ion-text>
     </ion-card-content>
   </ion-card>
 
   <div *ngIf="walletService.wallet">
+    <ion-text color="secondary">
+      <h3 class="ion-padding-horizontal">Transactions</h3>
+    </ion-text>
     <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
   </div>
 

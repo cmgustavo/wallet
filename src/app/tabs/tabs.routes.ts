@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import {BackupPage} from "../backup/backup.page";
 import {AddressPage} from "../address/address.page";
+import {TransactionPage} from "../transaction/transaction.page";
 
 export const routes: Routes = [
   {
@@ -43,6 +44,15 @@ export const routes: Routes = [
           {
             path: '',
             component: AddressPage,
+          }
+        ],
+      },
+      {
+        path: 'settings/transaction',
+        children: [
+          {
+            path: '',
+            component: TransactionPage,
           }
         ],
       },

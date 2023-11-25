@@ -1,0 +1,39 @@
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>
+          {{tx?.type}} ({{tx?.confirmed ? 'Confirmed' : 'Pending'}})
+      </ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label>
+        Amount
+      </ion-label>
+      <ion-note slot="end">{{tx?.amount}}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        Fee
+      </ion-label>
+      <ion-note slot="end">{{tx?.fee}}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+       Date
+      </ion-label>
+      <ion-note slot="end">{{tx?.date}}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        TxID
+      </ion-label>
+      <ion-note slot="end">{{tx?.id}}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        Notes
+      </ion-label>
+      <ion-note slot="end">{{tx?.notes}}</ion-note>
+    </ion-item>
+  </ion-list>
+
