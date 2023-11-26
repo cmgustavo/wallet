@@ -18,14 +18,12 @@
   </ion-header>
 
   <ion-card *ngIf="walletService.wallet">
+    <ion-card-header>
+      <ion-card-title>Recovery 12 words</ion-card-title>
+      <ion-card-subtitle>Keep this mnemonic safe. It is the only way to recover your wallet. If you lose it, you lose your wallet.</ion-card-subtitle>
+    </ion-card-header>
     <ion-card-content>
       <app-backup-component [mnemonic]="walletService.wallet.mnemonic"></app-backup-component>
-    </ion-card-content>
-  </ion-card>
-
-  <ion-card *ngIf="walletService.wallet" color="warning">
-    <ion-card-content>
-      Keep this mnemonic safe. It is the only way to recover your wallet. If you lose it, you lose your wallet.
     </ion-card-content>
   </ion-card>
 

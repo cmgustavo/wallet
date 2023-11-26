@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule, ToastController} from '@ionic/angular';
+import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {Network, WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
+import {Toast} from "@capacitor/toast";
 
 @Component({
   selector: 'app-import',
@@ -17,11 +18,13 @@ export class ImportPage implements OnInit {
   public name: string = 'Bitcoin Wallet';
   public selectedNetwork: Network = 'testnet';
   public showProgress: boolean = false;
+  public isDevice = this.platform.is('capacitor');
 
   constructor(
     private router: Router,
     private toastCtrl: ToastController,
-    public walletService: WalletService
+    public walletService: WalletService,
+    public platform: Platform,
   ) {
   }
 
@@ -42,21 +45,33 @@ export class ImportPage implements OnInit {
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
       this.showProgress = false;
-      // Show toast
-      const toast = await this.toastCtrl.create({
-        message: 'Wallet imported successfully',
-        duration: 2500,
-        position: 'middle'
-      });
-      await toast.present();
-    }).catch(error => {
+      if (this.isDevice) {
+        await Toast.show({
+          text: 'Wallet imported successfully',
+          duration: 'short'
+        });
+      } else {
+        const toast = await this.toastCtrl.create({
+          message: 'Wallet imported successfully',
+          duration: 2500,
+          position: 'middle'
+        });
+        await toast.present();
+      }
+    }).catch(async error => {
       console.log('Error importing wallet', error);
-      // Show toast
-      this.toastCtrl.create({
-        message: error,
-        duration: 2500,
-        position: 'middle'
-      }).then(toast => toast.present());
+      if (this.isDevice) {
+        await Toast.show({
+          text: 'Error importing wallet',
+          duration: 'short'
+        });
+      } else {
+        this.toastCtrl.create({
+          message: 'Error importing wallet',
+          duration: 2500,
+          position: 'bottom'
+        }).then(toast => toast.present());
+      }
     });
 
     this.router.navigate(['/tabs/home']);

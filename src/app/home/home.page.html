@@ -33,7 +33,7 @@
   </ion-card>
 
   <div *ngIf="walletService.wallet">
-    <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
+    <app-transactions-component [network]="walletService.wallet.network" [transactions]="walletService.wallet.transactions"></app-transactions-component>
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">

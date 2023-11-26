@@ -27,12 +27,12 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-        <app-transaction-details-component [tx]="currentTx"></app-transaction-details-component>
+        <app-transaction-details-component [network]="network" [tx]="currentTx"></app-transaction-details-component>
       </ion-content>
     </ng-template>
   </ion-modal>
 </ng-template>
-<ng-template class="ion-padding" #NoTx>
+<ng-template #NoTx>
   <div class="ion-padding">
     No transactions.
   </div>

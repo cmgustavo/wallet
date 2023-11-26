@@ -4,7 +4,8 @@
       <ion-label>
         <ion-text>
           <h1 class="ion-text-capitalize">{{tx?.type}}</h1>
-          <span>{{tx?.confirmed ? 'Confirmed' : 'Pending'}}</span>
+          <span *ngIf="tx?.confirmed" class="confirmed">Confirmed</span>
+          <span *ngIf="!tx?.confirmed" class="pending">Pending</span>
         </ion-text>
       </ion-label>
     </ion-list-header>
@@ -32,11 +33,13 @@
       </ion-label>
       <ion-note slot="end" class="truncate">{{tx?.id}}</ion-note>
     </ion-item>
-    <ion-item>
+    <ion-item *ngIf="tx?.notes">
       <ion-label>
         Notes
       </ion-label>
       <ion-note slot="end">{{tx?.notes}}</ion-note>
     </ion-item>
   </ion-list>
+
+  <ion-button class="ion-margin" fill="outline" expand="block" (click)="openExplorer()">View Transaction</ion-button>
 

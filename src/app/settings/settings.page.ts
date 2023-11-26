@@ -1,10 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {ActionSheetController, IonicModule, ToastController} from '@ionic/angular';
+import {ActionSheetController, IonicModule, Platform, ToastController} from '@ionic/angular';
 import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component';
 import {ThemeService} from '../services/theme/theme.service';
 import {WalletService} from '../services/wallet/wallet.service';
 import {Router} from "@angular/router";
 import {NgIf} from "@angular/common";
+import {Toast} from "@capacitor/toast";
 
 @Component({
   selector: 'app-settings',
@@ -16,13 +17,15 @@ import {NgIf} from "@angular/common";
 export class SettingsPage implements OnInit {
   public darkMode: boolean;
   public isModalDisclaimerOpen: boolean = false;
+  public isDevice = this.platform.is('capacitor');
 
   constructor(
     private themeService: ThemeService,
     private router: Router,
     private toastCtrl: ToastController,
     public actionSheetController: ActionSheetController,
-    public walletService: WalletService
+    public walletService: WalletService,
+    public platform: Platform,
   ) {
     this.darkMode = this.themeService.isDark;
   }
@@ -37,10 +40,6 @@ export class SettingsPage implements OnInit {
 
   openAddress() {
     this.router.navigate(['/tabs/settings/address']);
-  }
-
-  openTransaction() {
-    this.router.navigate(['/tabs/settings/transaction']);
   }
 
   close() {
@@ -67,12 +66,19 @@ export class SettingsPage implements OnInit {
           handler: async () => {
             await this.walletService.deleteWallet();
             console.log('Wallet deleted');
-            const toast = await this.toastCtrl.create({
-              message: 'Wallet deleted successfully',
-              duration: 2500,
-              position: 'middle'
-            });
-            await toast.present();
+            if (this.isDevice) {
+              await Toast.show({
+                text: 'Wallet deleted successfully',
+                duration: 'long'
+              });
+            } else {
+              const toast = await this.toastCtrl.create({
+                message: 'Wallet deleted successfully',
+                duration: 2500,
+                position: 'bottom'
+              });
+              await toast.present();
+            }
           },
         },
         {
@@ -86,5 +92,44 @@ export class SettingsPage implements OnInit {
       ],
     });
     await actionSheet.present();
+  }
+
+  public async clearTransactions() {
+    const actionSheetTx = await this.actionSheetController.create({
+      header: 'Confirm clear all transactions?',
+      buttons: [
+        {
+          text: 'Confirm',
+          role: 'destructive',
+          icon: 'trash',
+          handler: async () => {
+            await this.walletService.clearTransactions();
+            console.log('Transactions deleted');
+            if (this.isDevice) {
+              await Toast.show({
+                text: 'Transactions deleted successfully',
+                duration: 'long'
+              });
+            } else {
+              const toast = await this.toastCtrl.create({
+                message: 'Transactions deleted successfully',
+                duration: 2500,
+                position: 'bottom'
+              });
+              await toast.present();
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+          icon: 'close',
+          role: 'cancel',
+          handler: () => {
+            // Nothing to do, action sheet is automatically closed
+          },
+        },
+      ],
+    });
+    await actionSheetTx.present();
   }
 }

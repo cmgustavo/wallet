@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, isDevMode} from '@angular/core';
 import * as bip39 from 'bip39';
 import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
@@ -53,6 +53,12 @@ export class WalletService {
   private bip32 = BIP32Factory(ecc);
 
   constructor() {
+    console.log('WalletService constructor');
+    if (isDevMode()) {
+      console.log('Development mode');
+    } else {
+      console.log('Production mode');
+    }
   }
 
   public createWallet = async (isTestnet: boolean = false, name: string): Promise<{

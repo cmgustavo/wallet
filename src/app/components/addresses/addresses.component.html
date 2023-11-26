@@ -3,16 +3,18 @@
   <ion-list>
     <ion-item *ngFor="let address of addresses">
       <ion-label>
-        [{{address.index}}] {{address.address}} {{address.change !== 0 ? 'Change' : null}}
+        [{{address.index}}] <br>
+        <span class="truncate">{{address.address}}</span>
+        {{address.change !== 0 ? '(Change)' : null}}
       </ion-label>
-      <ion-note slot="end">{{address.balance}}</ion-note>
+      <ion-note slot="end">{{address.balance}} sat</ion-note>
     </ion-item>
   </ion-list>
 </ng-template>
 <ng-template #NoAddresses>
-  <ion-card color="warning">
-    <ion-card-content>No Addresses</ion-card-content>
-  </ion-card>
+  <div class="ion-padding">
+    No Addresses.
+  </div>
 </ng-template>
 
 

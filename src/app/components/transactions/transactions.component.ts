@@ -18,6 +18,7 @@ import {TransactionDetailsComponent} from "../transaction-details/transaction-de
 })
 export class TransactionsComponent {
   @Input() transactions: Transaction[] | undefined;
+  @Input() network: string | undefined;
 
   public isModalTransactionDetailsOpen: boolean = false;
   public currentTx: Transaction | undefined;
