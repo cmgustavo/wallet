@@ -15,6 +15,7 @@ import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component
   imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent],
 })
 export class HomePage implements OnInit {
+  public showProgress: boolean = false;
   constructor(
     public walletService: WalletService,
     private router: Router
@@ -23,8 +24,18 @@ export class HomePage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
-    await this.walletService.updateTotalBalance();
-    await this.walletService.updateTransactions();
+    if (this.walletService.wallet) {
+      await this.walletService.updateTotalBalance();
+      await this.walletService.updateTransactions();
+    }
+  }
+
+  handleRefresh(event: any) {
+    setTimeout(async () => {
+      await this.walletService.updateTotalBalance();
+      await this.walletService.updateTransactions();
+      event.target.complete();
+    }, 2000);
   }
 
   createWallet() {

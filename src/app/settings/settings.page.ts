@@ -70,7 +70,7 @@ export class SettingsPage implements OnInit {
             const toast = await this.toastCtrl.create({
               message: 'Wallet deleted successfully',
               duration: 2500,
-              position: 'top'
+              position: 'middle'
             });
             await toast.present();
           },

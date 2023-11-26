@@ -14,8 +14,9 @@ import {Router} from "@angular/router";
 })
 export class ImportPage implements OnInit {
   public mnemonic: string = '';
-  public name: string = '';
+  public name: string = 'Bitcoin Wallet';
   public selectedNetwork: Network = 'testnet';
+  public showProgress: boolean = false;
 
   constructor(
     private router: Router,
@@ -33,17 +34,19 @@ export class ImportPage implements OnInit {
     console.log(`Network: ${this.selectedNetwork}`);
 
     const isTestnet = this.selectedNetwork === 'testnet';
+    this.showProgress = true;
 
     // Import wallet
     this.walletService.importWallet(this.mnemonic, isTestnet, this.name).then(async (wallet) => {
       console.log('Wallet imported', wallet);
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
+      this.showProgress = false;
       // Show toast
       const toast = await this.toastCtrl.create({
         message: 'Wallet imported successfully',
         duration: 2500,
-        position: 'top'
+        position: 'middle'
       });
       await toast.present();
     }).catch(error => {
@@ -52,7 +55,7 @@ export class ImportPage implements OnInit {
       this.toastCtrl.create({
         message: error,
         duration: 2500,
-        position: 'top'
+        position: 'middle'
       }).then(toast => toast.present());
     });
 

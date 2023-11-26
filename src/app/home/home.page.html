@@ -1,8 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Home
-    </ion-title>
+    <ion-title>Home</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,6 +10,10 @@
       <ion-title size="large">Home</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <ion-card *ngIf="walletService.wallet">
     <ion-card-header>
@@ -25,15 +27,12 @@
 
     <ion-card-content>
       <ion-text>
-        {{walletService.wallet.balance}}
+        <h1>{{walletService.wallet.balanceStr}}</h1>
       </ion-text>
     </ion-card-content>
   </ion-card>
 
   <div *ngIf="walletService.wallet">
-    <ion-text color="secondary">
-      <h3 class="ion-padding-horizontal">Transactions</h3>
-    </ion-text>
     <app-transactions-component [transactions]="walletService.wallet.transactions"></app-transactions-component>
   </div>
 

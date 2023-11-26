@@ -13,8 +13,9 @@ import {Router} from "@angular/router";
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class CreatePage implements OnInit {
-  public name: string = '';
+  public name: string = 'Bitcoin Wallet';
   public selectedNetwork: Network = 'testnet';
+  public showProgress: boolean = false;
 
   constructor(
     private router: Router,
@@ -36,9 +37,11 @@ export class CreatePage implements OnInit {
     console.log(`Network: ${this.selectedNetwork}`);
 
     const isTestnet = this.selectedNetwork === 'testnet';
+    this.showProgress = true;
     // Create wallet
     this.walletService.createWallet(isTestnet, this.name).then(async (wallet) => {
       console.log('Wallet created', wallet);
+      this.showProgress = false;
       // Show toast
       const toast = await this.toastCtrl.create({
         message: 'Wallet "' + this.name + '" created successfully',

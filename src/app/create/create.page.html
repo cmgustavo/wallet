@@ -4,6 +4,7 @@
       <ion-back-button default-href="#/home"></ion-back-button>
     </ion-buttons>
     <ion-title>Create a Wallet</ion-title>
+    <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
   </ion-toolbar>
 </ion-header>
 
@@ -14,6 +15,7 @@
         <ion-back-button default-href="#/home"></ion-back-button>
       </ion-buttons>
       <ion-title size="large">Create a Wallet</ion-title>
+      <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
     </ion-toolbar>
   </ion-header>
 

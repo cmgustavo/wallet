@@ -24,11 +24,13 @@ export interface Address {
 export interface Transaction {
   id: string;
   amount: number;
+  amountStr?: string;
   notes: string;
   date: string;
   block_time: number;
   confirmed: boolean;
   fee: number;
+  feeStr?: string;
   type: TransactionType;
 }
 
@@ -37,6 +39,7 @@ export interface Wallet {
   name: string | undefined;
   network: Network;
   balance: number | undefined;
+  balanceStr?: string;
   addresses: Address[] | undefined;
   transactions: Transaction[] | undefined;
 }
@@ -93,6 +96,7 @@ export class WalletService {
       mnemonic,
       name,
       balance: 0,
+      balanceStr: '0 BTC',
       network: isTestnet ? 'testnet' : 'livenet',
       addresses: [{
         address: address,
@@ -132,6 +136,7 @@ export class WalletService {
       mnemonic,
       name,
       balance: 0,
+      balanceStr: '0 BTC',
       network: isTestnet ? 'testnet' : 'livenet',
       addresses: [{
         address: address,
@@ -191,16 +196,19 @@ export class WalletService {
       return input.scriptpubkey_address === address;
     });
     const date = new Date(transaction.status.block_time * 1000);
+    const amount = transaction.vout.reduce((previousValue: number, currentValue: any) => {
+      return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
+    }, 0);
     const tx: Transaction = {
       id: transaction.txid,
-      amount: transaction.vout.reduce((previousValue: number, currentValue: any) => {
-        return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
-      }, 0),
+      amount,
+      amountStr: amount / 1e8 + ' BTC',
       notes: '',
       date: typeof date === 'object' && date !== null ? date.toLocaleString() : new Date().toLocaleString(),
       block_time: transaction.status.block_time,
       confirmed: transaction.status.confirmed,
       fee: transaction.fee,
+      feeStr: transaction.fee / 1e8 + ' BTC',
       type: type ? 'received' : 'sent',
     };
     return tx;
@@ -279,6 +287,7 @@ export class WalletService {
     });
     await Promise.all(promises);
     this.wallet.balance = this.calculateTotalBalance();
+    this.wallet.balanceStr = this.wallet.balance / 1e8 + ' BTC';
     await this.saveWallet();
   }
 
