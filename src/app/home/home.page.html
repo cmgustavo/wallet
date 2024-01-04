@@ -50,4 +50,20 @@
       </ion-row>
     </ion-grid>
   </div>
+
+  <ion-modal [isOpen]="isModalDisclaimerOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Disclaimer</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <app-disclaimer-component></app-disclaimer-component>
+      </ion-content>
+      <ion-footer class="ion-no-border">
+        <ion-button (click)="closeDisclaimer()" expand="block">Accept</ion-button>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
 </ion-content>

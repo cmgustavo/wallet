@@ -58,15 +58,15 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
+          <ion-buttons slot="primary">
+            <ion-button (click)="close()">Close</ion-button>
+          </ion-buttons>
           <ion-title>Disclaimer</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
         <app-disclaimer-component></app-disclaimer-component>
       </ion-content>
-      <ion-footer class="ion-no-border">
-        <ion-button (click)="close()" expand="block">Accept</ion-button>
-      </ion-footer>
     </ng-template>
   </ion-modal>
 </ion-content>

@@ -3,6 +3,7 @@ import {IonicModule} from '@ionic/angular';
 import {CommonModule} from '@angular/common';
 import {Router} from "@angular/router";
 import {WalletService} from "../services/wallet/wallet.service";
+import {ConfigService} from "../services/config/config.service";
 import {AddressesComponent} from "../components/addresses/addresses.component";
 import {TransactionsComponent} from "../components/transactions/transactions.component";
 import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component";
@@ -15,11 +16,18 @@ import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component
   imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent],
 })
 export class HomePage implements OnInit {
+  public isModalDisclaimerOpen: boolean = false;
   public showProgress: boolean = false;
   constructor(
     public walletService: WalletService,
-    private router: Router
+    private router: Router,
+    private configService: ConfigService
   ) {
+    this.configService.checkDisclaimer().then((value) => {
+      if (!value) {
+        this.isModalDisclaimerOpen = true;
+      }
+    });
   }
 
   async ngOnInit() {
@@ -44,5 +52,10 @@ export class HomePage implements OnInit {
 
   importWallet() {
     this.router.navigate(['/import']);
+  }
+
+  closeDisclaimer() {
+    this.isModalDisclaimerOpen = false;
+    this.configService.acceptDisclaimer('true');
   }
 }
