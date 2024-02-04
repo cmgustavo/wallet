@@ -16,10 +16,18 @@
       <ion-label>General</ion-label>
     </ion-list-header>
     <ion-item>
-      <ion-toggle [checked]="darkMode" (ionChange)="toggleDarkMode()"
-      >Dark Mode
-      </ion-toggle
-      >
+      <ion-toggle [checked]="darkMode" (ionChange)="toggleDarkMode()">
+        Dark Mode
+      </ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-toggle [checked]="darkMode" (ionChange)="toggleDarkMode()">
+        Hide Balance
+      </ion-toggle>
+    </ion-item>
+    <ion-item button="Backup" (click)="openBackup()">
+      <ion-label>Currency</ion-label>
+      <ion-note slot="end">USD</ion-note>
     </ion-item>
     <div *ngIf="walletService.wallet">
       <ion-list-header>
@@ -31,11 +39,17 @@
       <ion-item button="Addresses" (click)="openAddress()">
         <ion-label>Addresses</ion-label>
       </ion-item>
-      <ion-item button="Clear" (click)="clearTransactions()">
-        <ion-label color="secondary">Clear Transactions</ion-label>
-      </ion-item>
       <ion-item button="Delete" (click)="deleteWallet()">
         <ion-label color="danger">Delete</ion-label>
+      </ion-item>
+      <ion-list-header>
+        <ion-label>Transactions</ion-label>
+      </ion-list-header>
+      <ion-item button="Clear" (click)="clearTransactions()">
+        <ion-label>Export</ion-label>
+      </ion-item>
+      <ion-item button="Clear" (click)="clearTransactions()">
+        <ion-label color="secondary">Clear Cache</ion-label>
       </ion-item>
     </div>
     <ion-list-header>

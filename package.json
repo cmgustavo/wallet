@@ -39,6 +39,7 @@
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.0",
     "buffer": "^6.0.3",
+    "ecpair": "^2.1.0",
     "ionicons": "^7.0.0",
     "ng-qrcode": "^8.0.1",
     "rxjs": "~7.5.0",

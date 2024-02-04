@@ -32,16 +32,13 @@ export class HomePage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
-    if (this.walletService.wallet) {
-      await this.walletService.updateTotalBalance();
-      await this.walletService.updateTransactions();
-    }
   }
 
   handleRefresh(event: any) {
     setTimeout(async () => {
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
+      await this.walletService.loadSaved();
       event.target.complete();
     }, 2000);
   }

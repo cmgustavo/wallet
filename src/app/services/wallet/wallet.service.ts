@@ -14,6 +14,7 @@ export interface Balance {
   unconfirmed: number;
   coin: string;
 }
+
 export interface Address {
   address: string;
   balance: number;
@@ -59,6 +60,17 @@ export class WalletService {
     } else {
       console.log('Production mode');
     }
+    if (this.wallet) {
+      this.updateTotalBalance();
+      this.updateTransactions();
+    }
+  }
+
+  private getAddress = (publicKey: any, isTestnet: boolean): string | undefined => {
+    return bitcoin.payments.p2wpkh({
+      pubkey: publicKey,
+      network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    }).address;
   }
 
   public createWallet = async (isTestnet: boolean = false, name: string): Promise<{
@@ -81,19 +93,7 @@ export class WalletService {
     const addressNode = root.derivePath(derivePath);
     const publicKey = addressNode.publicKey;
 
-    /*
-    const { address } = bitcoin.payments.p2sh({
-      redeem: bitcoin.payments.p2wpkh({
-        pubkey: publicKey,
-        network: bitcoin.networks.testnet,
-      }),
-      network: bitcoin.networks.testnet,
-    }); */
-
-    const {address} = bitcoin.payments.p2pkh({
-      pubkey: publicKey,
-      network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
-    });
+    const address = this.getAddress(publicKey, isTestnet);
 
     if (!address) throw new Error('Could not generate address');
 
@@ -130,10 +130,7 @@ export class WalletService {
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(mnemonic));
     const publicKey = root.derivePath(this.getDerivationPath()).publicKey;
 
-    const {address} = bitcoin.payments.p2pkh({
-      pubkey: publicKey,
-      network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
-    });
+    const address = this.getAddress(publicKey, isTestnet);
 
     if (!address) throw new Error('Could not generate address');
 
@@ -182,7 +179,9 @@ export class WalletService {
   }
 
   private getDerivationPath = (index: number = 0, change: number = 0) => {
-    return `m/44'/${change}'/${index}'`;
+    // TODO: use wallet network
+    // m / purpose' / coin_type' / account' / change / address_index
+    return `m/84'/0'/0'/${change}/${index}`;
   }
 
   private getTransactionsByAddress = async (address: string): Promise<Transaction[]> => {
@@ -198,11 +197,16 @@ export class WalletService {
     const url = `https://blockstream.info/testnet/api/tx/${txid}`;
     const response = await fetch(url);
     const transaction = await response.json();
-    const type = transaction.vout.find((input: any) => {
-      return input.scriptpubkey_address === address;
-    });
-    const date = new Date(transaction.status.block_time * 1000);
+
+    // Check if the address is in the inputs or outputs
+    const inputs = transaction.vin.map((input:any) => input.prevout.scriptpubkey_address);
+    const outputs = transaction.vout.map((output:any) => output.scriptpubkey_address);
+
+    const date = transaction.status.block_time ? new Date(transaction.status.block_time * 1000) : undefined;
     const amount = transaction.vout.reduce((previousValue: number, currentValue: any) => {
+      if (!outputs.includes(address)) {
+        return previousValue - currentValue.value;
+      }
       return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
     }, 0);
     const tx: Transaction = {
@@ -210,12 +214,12 @@ export class WalletService {
       amount,
       amountStr: amount / 1e8 + ' BTC',
       notes: '',
-      date: typeof date === 'object' && date !== null ? date.toLocaleString() : new Date().toLocaleString(),
+      date: typeof date === 'object' && date ? date.toLocaleString() : new Date().toLocaleString(),
       block_time: transaction.status.block_time,
       confirmed: transaction.status.confirmed,
       fee: transaction.fee,
       feeStr: transaction.fee / 1e8 + ' BTC',
-      type: type ? 'received' : 'sent',
+      type: inputs.includes(address) ? 'sent' : outputs.includes(address) ? 'received' : 'moved',
     };
     return tx;
   }
@@ -229,6 +233,12 @@ export class WalletService {
       const transactions = await this.getTransactionsByAddress(address.address);
       const promises = transactions.map(async (transaction: any) => {
         const tx = await this.getTransaction(transaction.txid, address.address);
+        // Update existent transaction
+        txs.forEach((t, index) => {
+          if (tx && t.id === tx.id) {
+            txs[index] = tx;
+          }
+        });
         // Only insert if not exists in wallet transactions array
         if (tx && !txs.find((t) => t.id === tx.id)) {
           txs.push(tx);
@@ -255,6 +265,21 @@ export class WalletService {
     const addresses = this.wallet.addresses;
     if (!addresses) throw new Error('Addresses no generated');
     return addresses[addresses.length - 1];
+  }
+
+  private getNewChangeAddress = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    const address = await this.createAddress(addresses.length, 1);
+    addresses.push({
+      address: address,
+      balance: 0,
+      index: addresses.length,
+      change: 1
+    });
+    await this.saveWallet();
+    return address;
   }
 
   public getNewAddress = async () => {
@@ -312,11 +337,137 @@ export class WalletService {
     const derivePath = this.getDerivationPath(index, change);
     const addressNode = root.derivePath(derivePath);
     const publicKey = addressNode.publicKey;
-    const {address} = bitcoin.payments.p2pkh({
-      pubkey: publicKey,
-      network: this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
-    });
+    const isTestnet = this.wallet.network === 'testnet' ? true : false;
+    const address = this.getAddress(publicKey, isTestnet);
     if (!address) throw new Error('Could not generate address');
     return address;
+  }
+
+  private currentFeeRate = async (): Promise<number> => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/fee-estimates`;
+    const response = await fetch(url);
+    const feeRates = await response.json();
+    const feeRate = feeRates['2'];
+    return feeRate;
+  }
+
+  private getUtxosByAddress = async (address: string): Promise<any[]> => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/address/${address}/utxo`;
+    const response = await fetch(url);
+    const utxos = await response.json();
+    return utxos;
+  }
+
+  private getUTXOs = async (): Promise<any[]> => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    const addresses = this.wallet.addresses;
+    if (!addresses) throw new Error('Addresses no generated');
+    const network = bitcoin.networks.testnet;
+    const promises = addresses.map(async (address) => {
+      const utxos = await this.getUtxosByAddress(address.address);
+      return {
+        address: address.address,
+        scriptpubkey: bitcoin.address.toOutputScript(address.address, network).toString('hex'),
+        utxos: utxos
+      };
+    });
+    const data = await Promise.all(promises);
+    return data.filter((d: any) => {
+      return d.utxos[0];
+    });
+  }
+
+  public broadcastTx = async (tx: string) => {
+    // TODO use wallet network
+    const url = `https://blockstream.info/testnet/api/tx`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: tx,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const result = await response.json();
+    return result;
+  }
+
+  public createTx = async (to: string, amount: number, message: string): Promise<any> => {
+    if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
+    const filteredUtxos = await this.getUTXOs();
+    const utxos = filteredUtxos.map((utxo: any) => {
+      return utxo.utxos;
+    }).flat();
+    const amountSat = Number(amount * 1e8);
+    const balanceSat = utxos.reduce((previousValue: number, currentValue: any) => {
+      return previousValue + currentValue.value;
+    }, 0);
+    if (balanceSat < amountSat) throw new Error('Insufficient funds');
+
+    const feeRate = await this.currentFeeRate();
+    console.log('#### feeRate', feeRate);
+
+    // Calculate the fee
+    const inputAmount = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
+    const feeSat = inputAmount - amountSat;
+
+    console.log('Transaction Fee:', feeSat / 1e8, 'BTC');
+
+    const psbt = new bitcoin.Psbt({network: this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin});
+    const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(this.wallet.mnemonic));
+    const keyPair = root.derivePath(this.getDerivationPath());
+    if (!keyPair) throw new Error('Could not generate public key');
+
+    filteredUtxos.forEach((input: any) => {
+      input.utxos.forEach((utxo: any) => {
+        try {
+          psbt.addInput({
+            hash: utxo.txid,
+            index: utxo.vout,
+            witnessUtxo: {
+              script: Buffer.from(input.scriptpubkey, 'hex'),
+              value: utxo.value,
+            },
+          });
+        } catch (e) {
+          console.log('#### ERROR adding input', e);
+          throw new Error('Error adding input');
+        }
+
+      });
+    });
+    psbt.addOutput({
+      address: to,
+      value: amountSat,
+    });
+    psbt.addOutput({
+      address: await this.getNewChangeAddress(),
+      value: balanceSat - amountSat,
+    });
+    utxos.forEach((utxo: any, index: number) => {
+      try {
+        psbt.signInput(index, keyPair);
+      } catch (e) {
+        console.log('#### ERROR signing input', e);
+        throw new Error('Error signing input');
+      }
+    });
+    try {
+      psbt.finalizeAllInputs();
+    } catch (error) {
+      console.error('Error finalizing inputs:', error);
+      throw new Error('Error finalizing inputs');
+    }
+    try {
+      const tx = psbt.extractTransaction();
+      return {
+        tx: tx.toHex(),
+        fee: feeSat / 1e8,
+      }
+    } catch (error) {
+      console.error('#### Error extracting transaction:', error);
+      throw new Error('Error extracting transaction');
+    }
   }
 }

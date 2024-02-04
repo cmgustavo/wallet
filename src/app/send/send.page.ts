@@ -12,10 +12,13 @@ import {WalletService} from "../services/wallet/wallet.service";
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class SendPage implements OnInit {
-  public to: string | undefined;
-  public amount: number | undefined;
-  public message: string | undefined;
+  public to: string;
+  public amount: number;
+  public message: string;
   constructor(public walletService: WalletService, public actionSheetController: ActionSheetController,) {
+    this.to = '';
+    this.amount = 0;
+    this.message = '';
   }
 
   async ngOnInit() {
@@ -32,6 +35,12 @@ export class SendPage implements OnInit {
           icon: 'send',
           handler: async () => {
             // TODO: this.walletService.send(this.to, this.amount, this.message);
+            const {tx, fee} = await this.walletService.createTx(this.to, this.amount, this.message) || {};
+            console.log('#### fee', fee);
+            if (!tx) {
+              return;
+            }
+            await this.walletService.broadcastTx(tx);
           },
         },
         {
