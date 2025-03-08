@@ -27,7 +27,7 @@
 
     <ion-card-content>
       <ion-text>
-        <h1>{{walletService.wallet.balanceStr}}</h1>
+        <h1>{{isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr}}</h1>
       </ion-text>
     </ion-card-content>
   </ion-card>

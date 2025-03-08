@@ -382,16 +382,25 @@ export class WalletService {
   public broadcastTx = async (tx: string) => {
     // TODO use wallet network
     const url = `https://blockstream.info/testnet/api/tx`;
-    const response = await fetch(url, {
-      method: 'POST',
-      body: tx,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    const result = await response.json();
-    return result;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: tx,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error broadcasting transaction:', error);
+      throw new Error('Error broadcasting transaction');
+    }
   }
+
+  public btcToSatoshis = (btc: number): number => {
+    return Math.round(btc * 1e8); // 1 BTC = 100,000,000 Satoshis
+  };
 
   public createTx = async (to: string, amount: number, message: string): Promise<any> => {
     if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
@@ -399,7 +408,7 @@ export class WalletService {
     const utxos = filteredUtxos.map((utxo: any) => {
       return utxo.utxos;
     }).flat();
-    const amountSat = Number(amount * 1e8);
+    const amountSat = this.btcToSatoshis(amount);
     const balanceSat = utxos.reduce((previousValue: number, currentValue: any) => {
       return previousValue + currentValue.value;
     }, 0);
@@ -431,32 +440,34 @@ export class WalletService {
             },
           });
         } catch (e) {
-          console.log('#### ERROR adding input', e);
           throw new Error('Error adding input');
         }
 
       });
     });
-    psbt.addOutput({
-      address: to,
-      value: amountSat,
-    });
-    psbt.addOutput({
-      address: await this.getNewChangeAddress(),
-      value: balanceSat - amountSat,
-    });
+    try {
+      psbt.addOutput({
+        address: to,
+        value: amountSat,
+      });
+      psbt.addOutput({
+        address: await this.getNewChangeAddress(),
+        value: balanceSat - amountSat,
+      });
+    } catch (e) {
+      throw new Error('Error adding output');
+    }
+
     utxos.forEach((utxo: any, index: number) => {
       try {
         psbt.signInput(index, keyPair);
       } catch (e) {
-        console.log('#### ERROR signing input', e);
         throw new Error('Error signing input');
       }
     });
     try {
       psbt.finalizeAllInputs();
     } catch (error) {
-      console.error('Error finalizing inputs:', error);
       throw new Error('Error finalizing inputs');
     }
     try {
@@ -466,7 +477,6 @@ export class WalletService {
         fee: feeSat / 1e8,
       }
     } catch (error) {
-      console.error('#### Error extracting transaction:', error);
       throw new Error('Error extracting transaction');
     }
   }

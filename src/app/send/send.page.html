@@ -1,6 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Send</ion-title>
+    <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
   </ion-toolbar>
 </ion-header>
 
@@ -17,13 +18,13 @@
     </ion-card-header>
     <ion-card-content>
       <ion-item>
-        <ion-input label="To" [(ngModel)]="to"></ion-input>
+        <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-input type="number" label="Amount" [(ngModel)]="amount"></ion-input>
+        <ion-input type="number" [disabled]="showProgress" label="Amount" [(ngModel)]="amount"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-textarea label="Message" [(ngModel)]="message"></ion-textarea>
+        <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
       </ion-item>
       <ion-button class="ion-margin-vertical" expand="block" (click)="send()">Send</ion-button>
     </ion-card-content>

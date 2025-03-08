@@ -18,6 +18,7 @@ import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component
 export class HomePage implements OnInit {
   public isModalDisclaimerOpen: boolean = false;
   public showProgress: boolean = false;
+  public isBalanceHidden: boolean = false;
   constructor(
     public walletService: WalletService,
     private router: Router,
@@ -28,10 +29,16 @@ export class HomePage implements OnInit {
         this.isModalDisclaimerOpen = true;
       }
     });
+    this.configService.checkBalanceHidden().then((value) => {
+      this.isBalanceHidden = value === 'true' ? true : false;
+    });
   }
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+    this.configService.balance$.subscribe((value) => {
+      this.isBalanceHidden = value === 'true' ? true : false;
+    });
   }
 
   handleRefresh(event: any) {

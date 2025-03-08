@@ -3,6 +3,7 @@ import {ActionSheetController, IonicModule, Platform, ToastController} from '@io
 import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component';
 import {ThemeService} from '../services/theme/theme.service';
 import {WalletService} from '../services/wallet/wallet.service';
+import {ConfigService} from "../services/config/config.service";
 import {Router} from "@angular/router";
 import {NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
@@ -16,6 +17,7 @@ import {Toast} from "@capacitor/toast";
 })
 export class SettingsPage implements OnInit {
   public darkMode: boolean;
+  public balanceHidden: boolean = false;
   public isModalDisclaimerOpen: boolean = false;
   public isDevice = this.platform.is('capacitor');
 
@@ -26,8 +28,12 @@ export class SettingsPage implements OnInit {
     public actionSheetController: ActionSheetController,
     public walletService: WalletService,
     public platform: Platform,
+    public configService: ConfigService,
   ) {
     this.darkMode = this.themeService.isDark;
+    configService.checkBalanceHidden().then((value) => {
+      this.balanceHidden = value === 'true' ? true : false;
+    });
   }
 
   async ngOnInit() {
@@ -53,6 +59,11 @@ export class SettingsPage implements OnInit {
   public toggleDarkMode() {
     this.darkMode = !this.darkMode;
     this.themeService.set(this.darkMode ? 'dark' : 'light');
+  }
+
+  public toggleShowBalance() {
+    this.balanceHidden = !this.balanceHidden;
+    this.configService.setBalanceHidden(this.balanceHidden ? 'true' : 'false');
   }
 
   public async deleteWallet() {
