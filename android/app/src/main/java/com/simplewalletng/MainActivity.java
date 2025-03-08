@@ -1,4 +1,4 @@
-package com.kaicope.wallet;
+package com.simplewalletng;
 
 import com.getcapacitor.BridgeActivity;
 

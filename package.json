@@ -1,8 +1,8 @@
 {
-  "name": "wallet",
+  "name": "simplewallet",
   "version": "0.0.1",
-  "author": "Kaicope",
-  "homepage": "https://github.com/Kaicope/wallet",
+  "author": "Gustavo Cortez",
+  "homepage": "https://github.com/cmgustavo/wallet",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
