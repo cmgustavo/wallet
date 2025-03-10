@@ -5,6 +5,7 @@ import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService, Network} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 import {Toast} from "@capacitor/toast";
+import {IS_TESTNET} from "../constants";
 
 @Component({
   selector: 'app-create',
@@ -15,7 +16,7 @@ import {Toast} from "@capacitor/toast";
 })
 export class CreatePage implements OnInit {
   public name: string = 'Bitcoin Wallet';
-  public selectedNetwork: Network = 'testnet';
+  public selectedNetwork: Network = IS_TESTNET ? 'testnet' : 'livenet';
   public showProgress: boolean = false;
   public isDevice = this.platform.is('capacitor');
 
@@ -34,10 +35,9 @@ export class CreatePage implements OnInit {
     console.log(`Name: ${this.name}`);
     console.log(`Network: ${this.selectedNetwork}`);
 
-    const isTestnet = this.selectedNetwork === 'testnet';
     this.showProgress = true;
     // Create wallet
-    this.walletService.createWallet(isTestnet, this.name).then(async (wallet) => {
+    this.walletService.createWallet(this.name).then(async (wallet) => {
       console.log('Wallet created', wallet);
       this.showProgress = false;
       if (this.isDevice) {

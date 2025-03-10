@@ -1,0 +1,56 @@
+<ion-list>
+  <ion-list-header class="ion-padding-bottom">
+    <ion-label>
+      <ion-text>
+        <h1 class="ion-text-capitalize">Send Proposal</h1>
+        <span class="pending">Pending</span>
+      </ion-text>
+    </ion-label>
+  </ion-list-header>
+  <ion-item>
+    <ion-label>
+      Amount
+    </ion-label>
+    <ion-note slot="end">{{ tx?.amountStr }}</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      Fee
+    </ion-label>
+    <ion-note slot="end">{{ tx?.feeStr }}</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      Date
+    </ion-label>
+    <ion-note slot="end">{{ tx?.date }}</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      TxID
+    </ion-label>
+    <ion-note slot="end" class="truncate">{{ tx?.id }}</ion-note>
+  </ion-item>
+  <ion-item *ngIf="tx?.message">
+    <ion-label>
+     Message
+    </ion-label>
+    <ion-note slot="end">{{ tx?.message }}</ion-note>
+  </ion-item>
+  <ion-item *ngIf="tx?.rawTx">
+    <ion-textarea
+      label="Raw Transaction"
+      style="height: 200px"
+      [value]="tx?.rawTx"
+      readonly
+    ></ion-textarea>
+  </ion-item>
+</ion-list>
+
+<ion-button class="ion-margin" fill="outline" expand="block" (click)="openExplorer()">View Transaction</ion-button>
+
+<ion-button class="ion-margin" fill="outline" expand="block"
+            [disabled]="showProgress"
+            (click)="broadcastProposal(tx?.rawTx)">Broadcast Transaction</ion-button>
+<ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
+

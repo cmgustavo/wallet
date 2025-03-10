@@ -1,6 +1,6 @@
 {
   "name": "simplewallet",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Gustavo Cortez",
   "homepage": "https://github.com/cmgustavo/wallet",
   "scripts": {
@@ -37,7 +37,7 @@
     "@ionic/storage-angular": "^3.0.6",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
-    "bitcoinjs-lib": "^6.1.0",
+    "bitcoinjs-lib": "^6.1.7",
     "buffer": "^6.0.3",
     "ecpair": "^2.1.0",
     "ionicons": "^7.0.0",

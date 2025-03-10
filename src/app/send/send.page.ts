@@ -31,6 +31,12 @@ export class SendPage implements OnInit {
     await this.walletService.loadSaved();
   }
 
+  private clearForm() {
+    this.to = '';
+    this.amount = 0;
+    this.message = '';
+  }
+
   async presentAlert(error: string) {
     const alert = await this.alertController.create({
       header: 'There was an error',
@@ -49,12 +55,12 @@ export class SendPage implements OnInit {
     await toast.present();
   }
 
-  public async send() {
+  public async createTransaction() {
     const actionSheet = await this.actionSheetController.create({
-      header: 'Confirm you are sending ' + this.amount + 'BTC to ' + this.to,
+      header: 'Confirm you are creating transaction of ' + this.amount + 'BTC to ' + this.to,
       buttons: [
         {
-          text: 'Confirm and Send',
+          text: 'Confirm and Create',
           role: 'selected',
           icon: 'send',
           handler: async () => {
@@ -62,18 +68,18 @@ export class SendPage implements OnInit {
             await actionSheet.dismiss();
             // TODO: this.walletService.send(this.to, this.amount, this.message);
             try {
-              const {tx, fee} = await this.walletService.createTx(this.to, this.amount, this.message) || {};
+              const tx = await this.walletService.createTx(this.to, this.amount, this.message) || {};
               if (!tx) {
                 throw new Error('Could not create transaction');
               }
-              await this.walletService.broadcastTx(tx);
+              //await this.walletService.broadcastTx(tx);
               this.showProgress = false;
-              await this.presentToast('Transaction sent');
+              this.clearForm();
+              await this.presentToast('Transaction Proposal created');
             } catch (e) {
-              console.error('#### error', e);
+              console.log('#### Error transaction', e);
               this.showProgress = false;
-              const errStr = typeof e === 'string' ? e : JSON.stringify(e);
-              await this.presentAlert(errStr);
+              await this.presentAlert(JSON.stringify(e));
             }
 
           },

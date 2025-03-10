@@ -17,23 +17,32 @@
 
   <ion-card *ngIf="walletService.wallet">
     <ion-card-header>
-      <ion-card-subtitle>{{walletService.wallet.network}}</ion-card-subtitle>
+      <ion-card-subtitle>{{ walletService.wallet.network }}</ion-card-subtitle>
       <ion-card-title>
         <ion-text color="primary">
-        {{walletService.wallet.name}}
+          {{ walletService.wallet.name }}
         </ion-text>
       </ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
       <ion-text>
-        <h1>{{isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr}}</h1>
+        <h1>{{ isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr }}</h1>
       </ion-text>
     </ion-card-content>
   </ion-card>
 
   <div *ngIf="walletService.wallet">
-    <app-transactions-component [network]="walletService.wallet.network" [transactions]="walletService.wallet.transactions"></app-transactions-component>
+    <div class="ion-padding">
+      <h5>Transactions Sent</h5>
+    </div>
+    <app-transactions-component [network]="walletService.wallet.network"
+                                [transactions]="walletService.wallet.transactions"></app-transactions-component>
+    <div class="ion-padding">
+      <h5>Proposals</h5>
+    </div>
+    <app-proposals-component [network]="walletService.wallet.network"
+                             [proposals]="walletService.wallet.proposals"></app-proposals-component>
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">

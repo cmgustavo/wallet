@@ -143,4 +143,43 @@ export class SettingsPage implements OnInit {
     });
     await actionSheetTx.present();
   }
+
+  public async clearProposals() {
+    const actionSheetTx = await this.actionSheetController.create({
+      header: 'Confirm clear all proposals?',
+      buttons: [
+        {
+          text: 'Confirm',
+          role: 'destructive',
+          icon: 'trash',
+          handler: async () => {
+            await this.walletService.clearProposals();
+            console.log('Proposals deleted');
+            if (this.isDevice) {
+              await Toast.show({
+                text: 'Proposals deleted successfully',
+                duration: 'long'
+              });
+            } else {
+              const toast = await this.toastCtrl.create({
+                message: 'Proposals deleted successfully',
+                duration: 2500,
+                position: 'bottom'
+              });
+              await toast.present();
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+          icon: 'close',
+          role: 'cancel',
+          handler: () => {
+            // Nothing to do, action sheet is automatically closed
+          },
+        },
+      ],
+    });
+    await actionSheetTx.present();
+  }
 }

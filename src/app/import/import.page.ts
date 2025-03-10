@@ -5,6 +5,7 @@ import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {Network, WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 import {Toast} from "@capacitor/toast";
+import {IS_TESTNET} from "../constants";
 
 @Component({
   selector: 'app-import',
@@ -16,7 +17,7 @@ import {Toast} from "@capacitor/toast";
 export class ImportPage implements OnInit {
   public mnemonic: string = '';
   public name: string = 'Bitcoin Wallet';
-  public selectedNetwork: Network = 'testnet';
+  public selectedNetwork: Network = IS_TESTNET ? 'testnet' : 'livenet';
   public showProgress: boolean = false;
   public isDevice = this.platform.is('capacitor');
 
@@ -36,11 +37,10 @@ export class ImportPage implements OnInit {
     console.log(`Name: ${this.name}`);
     console.log(`Network: ${this.selectedNetwork}`);
 
-    const isTestnet = this.selectedNetwork === 'testnet';
     this.showProgress = true;
 
     // Import wallet
-    this.walletService.importWallet(this.mnemonic, isTestnet, this.name).then(async (wallet) => {
+    this.walletService.importWallet(this.mnemonic, this.name).then(async (wallet) => {
       console.log('Wallet imported', wallet);
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
