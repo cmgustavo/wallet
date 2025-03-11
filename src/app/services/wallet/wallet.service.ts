@@ -9,6 +9,7 @@ import {CapacitorHttp, HttpResponse} from '@capacitor/core';
 
 export type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
+type ScriptType = 'p2pkh' | 'p2sh' | 'p2wpkh' | 'p2wsh';
 
 export interface Balance {
   total: number;
@@ -306,6 +307,15 @@ export class WalletService {
     await this.saveWallet();
   }
 
+  public removeProposal = async (id: string) => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    if (!this.wallet.proposals) throw new Error('Proposals not initialized');
+    this.wallet.proposals = this.wallet.proposals.filter((proposal) => {
+      return proposal.id !== id;
+    });
+    await this.saveWallet();
+  }
+
   public getLastAddress = () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
     const addresses = this.wallet.addresses;
@@ -422,15 +432,16 @@ export class WalletService {
     });
   }
 
-  public broadcastTx = async (tx: string) => {
+  public broadcastTx = async (txHex: string) => {
     const url = `${API_ENDPOINT}/tx`;
     const options = {
       url,
-      headers: {'Content-Type': 'application/json'},
-      data: { body: tx },
+      headers: { 'Content-Type': 'text/plain' },
+      data: txHex,
     };
     try {
       const response: HttpResponse = await CapacitorHttp.post(options);
+      console.log('Transaction ID:', response.data);
       return response;
     } catch (error) {
       console.error('Error broadcasting transaction:', error);
@@ -438,70 +449,102 @@ export class WalletService {
     }
   }
 
+  isDust(amountSat: number, scriptType: ScriptType): boolean {
+    const minRelayTxFee = 1000; // Default min relay fee (satoshis/kB)
+    let outputSize = 34; // Default for P2PKH
+
+    if (scriptType === 'p2pkh') outputSize = 34; // Pay-to-PubKey-Hash
+    else if (scriptType === 'p2sh') outputSize = 32; // Pay-to-Script-Hash
+    else if (scriptType === 'p2wpkh') outputSize = 31; // Native SegWit (P2WPKH)
+    else if (scriptType === 'p2wsh') outputSize = 43; // SegWit P2WSH
+
+    const dustThreshold = (outputSize * minRelayTxFee) / 1000;
+
+    console.log(`Dust Threshold for ${scriptType}:`, dustThreshold, 'satoshis');
+    return amountSat < dustThreshold;
+  }
+
   public createTx = async (to: string, amount: number, message: string): Promise<any> => {
     if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
     const filteredUtxos = await this.getUTXOs();
-    const utxos = filteredUtxos.map((utxo: any) => {
-      return utxo.utxos;
-    }).flat();
+
+    const utxos = filteredUtxos.flatMap((utxo: any) => utxo.utxos);
     const amountSat = this.btcToSatoshis(amount);
-    const balanceSat = utxos.reduce((previousValue: number, currentValue: any) => {
-      return previousValue + currentValue.value;
-    }, 0);
+    const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
+
     if (balanceSat < amountSat) throw new Error('Insufficient funds');
 
     const feeRate = await this.currentFeeRate();
-    console.log('#### feeRate', feeRate);
+    const estimatedSize = utxos.length * 148 + 2 * 34 + 10; // Approximate size
+    const feeSat = estimatedSize * feeRate;
 
-    // Calculate the fee
-    const inputAmount = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-    const feeSat = inputAmount - amountSat;
+    const changeValue = balanceSat - amountSat - feeSat;
+    if (changeValue < 0) throw new Error('Insufficient funds for fee');
 
     console.log('Transaction Fee:', this.satoshisToBtc(feeSat), 'BTC');
-
-    const isTestnet = this.wallet.network === 'testnet' ? true : false;
+    const isTestnet = this.wallet.network === 'testnet';
     const psbt = new bitcoin.Psbt({network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin});
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(this.wallet.mnemonic));
-    const keyPair = root.derivePath(this.getDerivationPath(0, 0, isTestnet));
-    if (!keyPair) throw new Error('Could not generate public key');
+
+    let scriptType: ScriptType = 'p2wpkh';
 
     filteredUtxos.forEach((input: any) => {
+      const scriptPubKey = input.scriptpubkey;
+      if (scriptPubKey.startsWith('76a914') && scriptPubKey.endsWith('88ac')) {
+        scriptType = 'p2pkh';
+        console.log('Legacy (P2PKH)');
+      } else if (scriptPubKey.startsWith('a914') && scriptPubKey.endsWith('87')) {
+        scriptType = 'p2sh';
+        console.log('SegWit Wrapped in P2SH (P2SH-P2WPKH)');
+      } else if (scriptPubKey.startsWith('0014')) {
+        scriptType = 'p2wpkh';
+        console.log('Native SegWit (P2WPKH)');
+      } else if (scriptPubKey.startsWith('0020')) {
+        scriptType = 'p2wsh';
+        console.log('Native SegWit (P2WSH)');
+      } else {
+        console.log('Unknown Script Type');
+      }
       input.utxos.forEach((utxo: any) => {
-        try {
-          psbt.addInput({
-            hash: utxo.txid,
-            index: utxo.vout,
-            witnessUtxo: {
-              script: Buffer.from(input.scriptpubkey, 'hex'),
-              value: utxo.value,
-            },
-          });
-        } catch (e) {
-          throw new Error('Error adding input');
-        }
-
+        psbt.addInput({
+          hash: utxo.txid,
+          index: utxo.vout,
+          witnessUtxo: {
+            script: Buffer.from(input.scriptpubkey, 'hex'),
+            value: utxo.value,
+          },
+        });
       });
     });
+    if (this.isDust(amountSat, scriptType)) {
+      throw new Error('Amount is too low and considered dust');
+    }
+
     try {
       psbt.addOutput({
         address: to,
         value: amountSat,
       });
-      psbt.addOutput({
-        address: await this.getNewChangeAddress(),
-        value: balanceSat - amountSat,
-      });
     } catch (e) {
+      console.log('Error adding output', e);
       throw new Error('Error adding output');
+    }
+
+    if (changeValue > 546) { // Prevent dust output
+      psbt.addOutput({ address: await this.getNewChangeAddress(), value: changeValue });
+    } else {
+      throw new Error('Error adding output, change is too low');
     }
 
     utxos.forEach((utxo: any, index: number) => {
       try {
+        const keyPair = root.derivePath(this.getDerivationPath(index, 0, isTestnet));
         psbt.signInput(index, keyPair);
       } catch (e) {
-        throw new Error('Error signing input');
+        throw new Error(`Error signing input ${index}: ${e}`);
       }
     });
+
     try {
       psbt.finalizeAllInputs();
     } catch (error) {
@@ -509,7 +552,17 @@ export class WalletService {
     }
     try {
       const tx = psbt.extractTransaction();
-      await this.saveProposal(tx.getId(), to, amount, amount + ' BTC', feeSat,  this.satoshisToBtc(feeSat) + ' BTC', message, new Date().toLocaleString(), tx.toHex());
+      await this.saveProposal(
+        tx.getId(),
+        to,
+        amount,
+        `${amount} BTC`,
+        feeSat,
+        `${this.satoshisToBtc(feeSat)} BTC`,
+        message,
+        new Date().toLocaleString(),
+        tx.toHex()
+      );
       return {
         tx: tx.toHex(),
         fee: feeSat / 1e8,

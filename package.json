@@ -1,12 +1,13 @@
 {
   "name": "simplewallet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Gustavo Cortez",
   "homepage": "https://github.com/cmgustavo/wallet",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration development && npx cap copy && npx cap open android",
+    "prod": "ng build --configuration production && npx cap copy && npx cap open android",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"

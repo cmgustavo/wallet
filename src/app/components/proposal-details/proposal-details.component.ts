@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {ProposeTransaction, WalletService} from "../../services/wallet/wallet.service";
-import {IonicModule, Platform} from "@ionic/angular";
+import {IonicModule, Platform, ToastController} from "@ionic/angular";
 import {NgForOf, NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
 import {Browser} from "@capacitor/browser";
@@ -20,7 +20,15 @@ export class ProposalDetailsComponent {
   @Input() tx: ProposeTransaction | undefined;
   @Input() network: string | undefined;
   public showProgress: boolean = false;
-  constructor(public platform: Platform, public walletService: WalletService) {
+  constructor(public platform: Platform, public walletService: WalletService, public toastController: ToastController) {
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+    });
+    await toast.present();
   }
 
   public async openExplorer() {
@@ -35,6 +43,21 @@ export class ProposalDetailsComponent {
     }
   }
 
+  public async remove() {
+    this.showProgress = true;
+    if (this.tx) {
+      console.log('Removing proposal', this.tx.id);
+      this.walletService.removeProposal(this.tx.id).then((response) => {
+        console.log('Proposal removed', JSON.stringify(response));
+        this.showProgress = false;
+        this.presentToast('Proposal removed successfully');
+      }).catch((error) => {
+        this.showProgress = false;
+        console.error('Error removing proposal', error);
+      });
+    }
+  }
+
   public async broadcastProposal(tx: string | undefined) {
     this.showProgress = true;
     if (!tx) {
@@ -44,12 +67,8 @@ export class ProposalDetailsComponent {
     this.walletService.broadcastTx(tx).then((response) => {
       console.log('Proposal broadcasted', JSON.stringify(response));
       this.showProgress = false;
-      if (this.platform.is('capacitor')) {
-        Toast.show({
-          text: 'Proposal broadcasted successfully',
-          duration: 'short'
-        });
-      }
+      this.presentToast('Proposal broadcasted successfully');
+      this.remove();
     }).catch((error) => {
       this.showProgress = false;
       console.error('Error broadcasting proposal', error);

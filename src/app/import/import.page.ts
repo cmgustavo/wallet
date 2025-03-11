@@ -29,6 +29,14 @@ export class ImportPage implements OnInit {
   ) {
   }
 
+  async presentToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 2000,
+    });
+    await toast.present();
+  }
+
   async ngOnInit() {
   }
 
@@ -45,19 +53,7 @@ export class ImportPage implements OnInit {
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
       this.showProgress = false;
-      if (this.isDevice) {
-        await Toast.show({
-          text: 'Wallet imported successfully',
-          duration: 'short'
-        });
-      } else {
-        const toast = await this.toastCtrl.create({
-          message: 'Wallet imported successfully',
-          duration: 2500,
-          position: 'middle'
-        });
-        await toast.present();
-      }
+      await this.presentToast('Wallet imported successfully');
     }).catch(async error => {
       console.log('Error importing wallet', error);
       if (this.isDevice) {

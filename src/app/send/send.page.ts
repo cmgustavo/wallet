@@ -39,7 +39,7 @@ export class SendPage implements OnInit {
 
   async presentAlert(error: string) {
     const alert = await this.alertController.create({
-      header: 'There was an error',
+      header: 'Could not create transaction',
       message: error,
       buttons: ['Ok'],
     });
@@ -69,17 +69,15 @@ export class SendPage implements OnInit {
             // TODO: this.walletService.send(this.to, this.amount, this.message);
             try {
               const tx = await this.walletService.createTx(this.to, this.amount, this.message) || {};
-              if (!tx) {
-                throw new Error('Could not create transaction');
-              }
-              //await this.walletService.broadcastTx(tx);
+              console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
               await this.presentToast('Transaction Proposal created');
-            } catch (e) {
-              console.log('#### Error transaction', e);
+            } catch (e: any) {
+              console.log('Transaction Proposal creation error', e);
               this.showProgress = false;
-              await this.presentAlert(JSON.stringify(e));
+              this.clearForm();
+              await this.presentAlert(e.toString());
             }
 
           },

@@ -4,7 +4,6 @@ import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService, Network} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
-import {Toast} from "@capacitor/toast";
 import {IS_TESTNET} from "../constants";
 
 @Component({
@@ -28,6 +27,14 @@ export class CreatePage implements OnInit {
   ) {
   }
 
+  async presentToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 2000,
+    });
+    await toast.present();
+  }
+
   async ngOnInit() {
   }
 
@@ -40,19 +47,7 @@ export class CreatePage implements OnInit {
     this.walletService.createWallet(this.name).then(async (wallet) => {
       console.log('Wallet created', wallet);
       this.showProgress = false;
-      if (this.isDevice) {
-        await Toast.show({
-          text: 'Wallet created successfully',
-          duration: 'short'
-        });
-      } else {
-        const toast = await this.toastCtrl.create({
-          message: 'Wallet created successfully',
-          duration: 2500,
-          position: 'bottom'
-        });
-        await toast.present();
-      }
+      await this.presentToast('Wallet created successfully');
     });
 
     this.router.navigate(['/tabs/home']);
