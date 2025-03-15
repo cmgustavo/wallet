@@ -19,6 +19,14 @@
     <ion-card-content>
       <ion-item>
         <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>
+        <ion-button size="small" slot="end" shape="round" (click)="scanQRCode()">
+          <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <ion-button [disabled]="!to" (click)="sendMax()">
+          Send Maximum Amount
+        </ion-button>
       </ion-item>
       <ion-item>
         <ion-input type="number" [disabled]="showProgress" label="Amount" [(ngModel)]="amount"></ion-input>
@@ -26,7 +34,9 @@
       <ion-item>
         <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
       </ion-item>
-      <ion-button class="ion-margin-vertical" expand="block" [disabled]="(!to || !amount)" (click)="createTransaction()">Create Transaction</ion-button>
+      <ion-button class="ion-margin-vertical" expand="block" [disabled]="(!to || !amount)"
+                  (click)="createTransaction()">Create Transaction
+      </ion-button>
     </ion-card-content>
   </ion-card>
 

@@ -7,6 +7,7 @@ import {ConfigService} from "../services/config/config.service";
 import {Router} from "@angular/router";
 import {NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
+import {IS_TESTNET} from "../constants";
 
 @Component({
   selector: 'app-settings',
@@ -20,6 +21,7 @@ export class SettingsPage implements OnInit {
   public balanceHidden: boolean = false;
   public isModalDisclaimerOpen: boolean = false;
   public isDevice = this.platform.is('capacitor');
+  public selectedNetwork = IS_TESTNET ? 'testnet' : 'livenet';
 
   constructor(
     private themeService: ThemeService,

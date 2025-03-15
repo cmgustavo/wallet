@@ -22,6 +22,7 @@
     "@angular/router": "^15.0.0",
     "@capacitor/android": "^6.2.0",
     "@capacitor/app": "^6.0.2",
+    "@capacitor/barcode-scanner": "^1.0.4",
     "@capacitor/browser": "^6.0.5",
     "@capacitor/camera": "^6.1.2",
     "@capacitor/clipboard": "^6.0.2",

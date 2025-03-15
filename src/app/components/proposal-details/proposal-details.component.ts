@@ -68,7 +68,9 @@ export class ProposalDetailsComponent {
       console.log('Proposal broadcasted', JSON.stringify(response));
       this.showProgress = false;
       this.presentToast('Proposal broadcasted successfully');
-      this.remove();
+      if (this.tx) {
+        this.walletService.moveProposalToTransactions(this.tx.id);
+      }
     }).catch((error) => {
       this.showProgress = false;
       console.error('Error broadcasting proposal', error);

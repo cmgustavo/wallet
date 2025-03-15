@@ -40,16 +40,16 @@
         <ion-label>Addresses</ion-label>
       </ion-item>
       <ion-item button="Delete" (click)="deleteWallet()">
-        <ion-label color="danger">Delete</ion-label>
+        <ion-label color="danger">Delete Wallet</ion-label>
       </ion-item>
       <ion-list-header>
         <ion-label>Transactions</ion-label>
       </ion-list-header>
       <ion-item button="Clear" (click)="clearTransactions()">
-        <ion-label color="secondary">Clear Cache</ion-label>
+        <ion-label>Clear Cache</ion-label>
       </ion-item>
       <ion-item button="Clear" (click)="clearProposals()">
-        <ion-label color="secondary">Remove Proposals</ion-label>
+        <ion-label color="danger">Remove all proposals</ion-label>
       </ion-item>
     </div>
     <ion-list-header>
@@ -58,6 +58,10 @@
     <ion-item>
       <ion-label>Version</ion-label>
       <ion-note slot="end">1.0.0</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>Network</ion-label>
+      <ion-note slot="end">{{selectedNetwork}}</ion-note>
     </ion-item>
     <ion-item button="Disclaimer" (click)="showDisclaimer()">
       <ion-label>Disclaimer</ion-label>

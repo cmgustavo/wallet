@@ -1,8 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ActionSheetController, IonicModule, IonProgressBar, AlertController, ToastController} from '@ionic/angular';
+import {ActionSheetController, AlertController, IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
+import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
+import {Capacitor} from "@capacitor/core";
 
 @Component({
   selector: 'app-send',
@@ -17,7 +19,10 @@ export class SendPage implements OnInit {
   public amount: number;
   public message: string;
 
+  private isDevice = this.platform.is('capacitor');
+
   constructor(
+    public platform: Platform,
     public walletService: WalletService,
     public actionSheetController: ActionSheetController,
     public alertController: AlertController,
@@ -29,6 +34,18 @@ export class SendPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+  }
+
+  async scanQRCode() {
+    if (this.isDevice) {
+      const result = await CapacitorBarcodeScanner.scanBarcode(
+        {hint: CapacitorBarcodeScannerTypeHintALLOption.ALL}
+      );
+      if (result.ScanResult) {
+        console.log('Scanned QR code', result.ScanResult);
+        this.to = result.ScanResult;
+      }
+    }
   }
 
   private clearForm() {
@@ -53,6 +70,43 @@ export class SendPage implements OnInit {
       duration: 2000,
     });
     await toast.present();
+  }
+
+  public async sendMax() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Send maximum amount',
+      buttons: [
+        {
+          text: 'Send Max',
+          role: 'selected',
+          icon: 'send',
+          handler: async () => {
+            this.showProgress = true;
+            await actionSheet.dismiss();
+            this.walletService.sendMax(this.to, this.message).then(async (tx) => {
+              console.log('Transaction Proposal created', tx);
+              this.showProgress = false;
+              this.clearForm();
+              await this.presentToast('Transaction Proposal created');
+            } ).catch(async (e) => {
+              console.log('Transaction Proposal creation error', e);
+              this.showProgress = false;
+              this.clearForm();
+              await this.presentAlert(e.toString());
+            } );
+          },
+        },
+        {
+          text: 'Cancel',
+          icon: 'close',
+          role: 'cancel',
+          handler: () => {
+            // Nothing to do, action sheet is automatically closed
+          },
+        },
+      ],
+    });
+    await actionSheet.present();
   }
 
   public async createTransaction() {

@@ -4,8 +4,8 @@
     <ion-item *ngFor="let address of addresses">
       <ion-label>
         [{{address.index}}] <br>
+        {{address.change !== 0 ? '(Change)' : null}} <br>
         <span class="truncate">{{address.address}}</span>
-        {{address.change !== 0 ? '(Change)' : null}}
       </ion-label>
       <ion-note slot="end">{{address.balance}} sat</ion-note>
     </ion-item>
