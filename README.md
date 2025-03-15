@@ -1,6 +1,6 @@
-# wallet
+# Simple Wallet
 
-Self custodial crypto wallet
+Self custodial crypto wallet.
 
 ## Overview
 
@@ -62,3 +62,33 @@ damage or inconvenience caused by them.
 By using a non-custodial bitcoin wallet, you acknowledge that you have read,
 understood and agreed to this disclaimer. You also confirm that you are of
 legal age and have the capacity to enter into this agreement.
+
+## Privacy Policy
+
+Simple Wallet is a self-custodial Bitcoin wallet designed to operate offline, ensuring user privacy and security. Your privacy is important to us, and we are committed to protecting it.
+
+1. No Data Collection
+
+Simple Wallet does not collect, store, or share any personal data. All data, including your wallet information and transaction history, is stored locally on your device.
+
+2. No Third-Party Services
+
+Simple Wallet operates entirely offline and does not connect to any external servers or third-party services. Your Bitcoin addresses and private keys remain under your full control.
+
+3. Permissions
+
+The app may request access to:
+Camera: To scan QR codes for Bitcoin addresses.
+This access is only used locally within the app and is not shared or stored externally.
+
+4. Security
+
+Since Simple Wallet is a self-custodial wallet, the security of your funds depends entirely on how you manage your recovery phrase. We strongly recommend backing up your 12-word recovery phrase securely, as losing it means losing access to your funds permanently.
+
+5. Changes to This Policy
+
+We may update this privacy policy if necessary. Any changes will be reflected in this document, and continued use of the app indicates your acceptance of the updated policy.
+
+6. Contact
+
+If you have any questions about this privacy policy, please contact me.
