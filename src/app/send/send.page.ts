@@ -1,10 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ActionSheetController, AlertController, IonicModule, Platform, ToastController} from '@ionic/angular';
+import {ActionSheetController, AlertController, IonicModule, Platform, ToastController, IonToggle} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
-import {Capacitor} from "@capacitor/core";
 
 @Component({
   selector: 'app-send',
@@ -18,6 +17,7 @@ export class SendPage implements OnInit {
   public to: string;
   public amount: number;
   public message: string;
+  public useTotalAmount: boolean = false;
 
   private isDevice = this.platform.is('capacitor');
 
@@ -34,6 +34,10 @@ export class SendPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+  }
+
+  async useTotalAmountChanged(event: CustomEvent) {
+    this.useTotalAmount = event.detail.checked;
   }
 
   async scanQRCode() {

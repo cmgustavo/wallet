@@ -715,4 +715,18 @@ export class WalletService {
       throw new Error('Error extracting transaction');
     }
   }
+
+  checkValidBitcoinAddress(address: string): boolean {
+    try {
+      if (IS_TESTNET) {
+        bitcoin.address.toOutputScript(address, bitcoin.networks.testnet);
+      } else {
+        bitcoin.address.toOutputScript(address);
+      }
+      return true;
+    } catch (error) {
+      console.error('Invalid Bitcoin address:', error);
+      return false;
+    }
+  }
 }

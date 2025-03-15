@@ -42,6 +42,10 @@ export class SettingsPage implements OnInit {
     await this.walletService.loadSaved();
   }
 
+  openAddressbook() {
+    this.router.navigate(['/tabs/settings/addressbook']);
+  }
+
   openBackup() {
     this.router.navigate(['/tabs/settings/backup']);
   }

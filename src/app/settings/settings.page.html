@@ -29,6 +29,9 @@
       <ion-label>Currency</ion-label>
       <ion-note slot="end">USD</ion-note>
     </ion-item>
+    <ion-item button="Addressbook" (click)="openAddressbook()">
+      <ion-label>Address Book</ion-label>
+    </ion-item>
     <div *ngIf="walletService.wallet">
       <ion-list-header>
         <ion-label>Wallet</ion-label>

@@ -1,7 +1,8 @@
-import { Routes } from '@angular/router';
-import { TabsPage } from './tabs.page';
+import {Routes} from '@angular/router';
+import {TabsPage} from './tabs.page';
 import {BackupPage} from "../backup/backup.page";
 import {AddressPage} from "../address/address.page";
+import {AddressbookPage} from "../addressbook/addressbook.page";
 
 export const routes: Routes = [
   {
@@ -46,6 +47,15 @@ export const routes: Routes = [
           }
         ],
       },
+      {
+        path: 'settings/addressbook',
+        children: [
+          {
+            path: '',
+            component: AddressbookPage,
+          }
+        ],
+      }
     ],
   },
   {
