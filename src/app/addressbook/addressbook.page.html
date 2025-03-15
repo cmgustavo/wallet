@@ -27,20 +27,14 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-card>
-    <ion-card-content>
-
-    </ion-card-content>
-  </ion-card>
-
-  <div *ngIf="contacts?.length; then ListContacts else NoContacts"></div>
+  <div *ngIf="Object.keys(contacts)?.length; then ListContacts else NoContacts"></div>
   <ng-template #ListContacts>
 
     <ion-list>
-      <ion-item *ngFor="let contact of contacts">
-        <ion-label>
-          <h2>{{ contact.name }}</h2>
-          <p>{{ contact.address }}</p>
+      <ion-item *ngFor="let key of Object.keys(contacts)">
+        <ion-label class="ion-text-wrap" (click)="copyAddress(key)">
+          <h2>{{ contacts[key] }}</h2>
+          <p>{{ key }}</p>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -75,7 +69,7 @@
           <ion-label>Address</ion-label>
           <ion-input [(ngModel)]="address"></ion-input>
         </ion-item>
-        <ion-button expand="block" (click)="addContact()">Add Contact</ion-button>
+        <ion-button expand="block" (click)="addContact()">Save</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>

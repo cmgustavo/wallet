@@ -5,47 +5,34 @@ export interface AddressBook {
   [address: string]: string;
 }
 
-export interface AddressBookObject {
-  address: string;
-  name: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class AddressbookService {
   private ADDRESSBOOK_STORAGE: string = 'addressbook';
-  public addressBook: AddressBook = {};
 
-  constructor() {
-    this.loadAddressBook();
-  }
+  constructor() {}
 
-  async loadAddressBook(): Promise<any> {
+  async getAddressBook(): Promise<AddressBook | undefined> {
     const {value} = await Preferences.get({key: this.ADDRESSBOOK_STORAGE});
-    if (value) {
-      this.addressBook = JSON.parse(value) as AddressBook;
-    }
+    return value ? JSON.parse(value) as AddressBook : undefined;
   }
 
-  async getAddressBook(): Promise<AddressBookObject[]> {
-    await this.loadAddressBook();
-    return Object.entries(this.addressBook).map(([address, name]) => ({address, name}));
-  }
-
-  async saveAddressBook(): Promise<void> {
-    const value = JSON.stringify(this.addressBook);
+  async saveAddressBook(addressBook: AddressBook): Promise<void> {
+    const value = JSON.stringify(addressBook);
     await Preferences.set({key: this.ADDRESSBOOK_STORAGE, value: value});
   }
 
   async addAddressBookEntry(address: string, name: string): Promise<void> {
-    this.addressBook[address] = name;
-    await this.saveAddressBook();
+    const addressBook = await this.getAddressBook() || {};
+    addressBook[address] = name;
+    await this.saveAddressBook(addressBook);
   }
 
   async removeAddressBookEntry(address: string): Promise<void> {
-    delete this.addressBook[address];
-    await this.saveAddressBook();
+    const addressBook = await this.getAddressBook() || {};
+    delete addressBook[address];
+    await this.saveAddressBook(addressBook);
   }
 
   async clearAddressBook(): Promise<void> {

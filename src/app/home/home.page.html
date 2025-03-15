@@ -38,13 +38,6 @@
     </div>
     <app-transactions-component [network]="walletService.wallet.network"
                                 [transactions]="walletService.wallet.transactions"></app-transactions-component>
-    <div *ngIf="walletService.wallet.proposals">
-      <div class="ion-padding">
-        <h5>Proposals</h5>
-      </div>
-      <app-proposals-component [network]="walletService.wallet.network"
-                               [proposals]="walletService.wallet.proposals"></app-proposals-component>
-    </div>
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">

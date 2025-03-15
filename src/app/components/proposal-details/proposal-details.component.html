@@ -47,11 +47,9 @@
   </ion-item>
 </ion-list>
 
-<ion-button class="ion-margin" fill="outline" expand="block" (click)="remove()">Remove</ion-button>
-<ion-button class="ion-margin" fill="outline" expand="block" (click)="openExplorer()">View Transaction</ion-button>
-
 <ion-button class="ion-margin" fill="outline" expand="block"
             [disabled]="showProgress"
             (click)="broadcastProposal(tx?.rawTx)">Broadcast Transaction</ion-button>
+<ion-button class="ion-margin" fill="clear" expand="block" color="danger" (click)="remove()">Remove</ion-button>
 <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
 

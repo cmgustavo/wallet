@@ -4,6 +4,7 @@ import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component
 import {ThemeService} from '../services/theme/theme.service';
 import {WalletService} from '../services/wallet/wallet.service';
 import {ConfigService} from "../services/config/config.service";
+import {AddressbookService} from "../services/addressbook/addressbook.service";
 import {Router} from "@angular/router";
 import {NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
@@ -31,6 +32,7 @@ export class SettingsPage implements OnInit {
     public walletService: WalletService,
     public platform: Platform,
     public configService: ConfigService,
+    public addressbookService: AddressbookService,
   ) {
     this.darkMode = this.themeService.isDark;
     configService.checkBalanceHidden().then((value) => {
@@ -70,6 +72,45 @@ export class SettingsPage implements OnInit {
   public toggleShowBalance() {
     this.balanceHidden = !this.balanceHidden;
     this.configService.setBalanceHidden(this.balanceHidden ? 'true' : 'false');
+  }
+
+  public async removeAllContacts() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Confirm delete all contacts?',
+      buttons: [
+        {
+          text: 'Delete',
+          role: 'destructive',
+          icon: 'trash',
+          handler: async () => {
+            await this.addressbookService.clearAddressBook();
+            console.log('Address book deleted');
+            if (this.isDevice) {
+              await Toast.show({
+                text: 'Address book deleted successfully',
+                duration: 'long'
+              });
+            } else {
+              const toast = await this.toastCtrl.create({
+                message: 'Address book deleted successfully',
+                duration: 2500,
+                position: 'bottom'
+              });
+              await toast.present();
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+          icon: 'close',
+          role: 'cancel',
+          handler: () => {
+            // Nothing to do, action sheet is automatically closed
+          },
+        },
+      ],
+    });
+    await actionSheet.present();
   }
 
   public async deleteWallet() {

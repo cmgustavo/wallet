@@ -2,15 +2,17 @@ import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActionSheetController, AlertController, IonicModule, Platform, ToastController, IonToggle} from '@ionic/angular';
-import {WalletService} from "../services/wallet/wallet.service";
+import {ProposeTransaction, WalletService} from "../services/wallet/wallet.service";
+import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
+import {ProposalsComponent} from "../components/proposals/proposals.component";
 
 @Component({
   selector: 'app-send',
   templateUrl: './send.page.html',
   styleUrls: ['./send.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [IonicModule, CommonModule, FormsModule, ProposalsComponent],
 })
 export class SendPage implements OnInit {
   public showProgress: boolean = false;
@@ -18,6 +20,8 @@ export class SendPage implements OnInit {
   public amount: number;
   public message: string;
   public useTotalAmount: boolean = false;
+  public contacts: AddressBook = {};
+  public proposals: ProposeTransaction[] = [];
 
   private isDevice = this.platform.is('capacitor');
 
@@ -26,6 +30,7 @@ export class SendPage implements OnInit {
     public walletService: WalletService,
     public actionSheetController: ActionSheetController,
     public alertController: AlertController,
+    public addressbookService: AddressbookService,
     public toastController: ToastController) {
     this.to = '';
     this.amount = 0;
@@ -34,10 +39,35 @@ export class SendPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+    // Check there is proposals
+    this.proposals = await this.walletService.getProposals();
+    this.addressbookService.getAddressBook().then(addressBook => {
+      this.contacts = addressBook || {};
+    });
   }
 
-  async useTotalAmountChanged(event: CustomEvent) {
-    this.useTotalAmount = event.detail.checked;
+  async openModalContacts() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Contacts',
+      buttons: Object.keys(this.contacts).map((address) => {
+        return {
+          text: this.contacts[address],
+          icon: 'person',
+          handler: () => {
+            this.to = address;
+          },
+        };
+      }).concat([
+        {
+          text: 'Cancel',
+          icon: 'close',
+          handler: () => {
+            // Nothing to do, action sheet is automatically closed
+          },
+        },
+      ]),
+    });
+    await actionSheet.present();
   }
 
   async scanQRCode() {

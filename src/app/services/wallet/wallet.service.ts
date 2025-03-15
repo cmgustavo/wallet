@@ -325,6 +325,11 @@ export class WalletService {
     await this.saveWallet();
   }
 
+  public getProposals = async () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    return this.wallet.proposals || [];
+  }
+
   public clearProposals = async () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
     this.wallet.proposals = [];

@@ -28,6 +28,12 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () =>
           import('../settings/settings.page').then((m) => m.SettingsPage),
+        children: [
+          {
+            path: 'settings/addressbook',
+            component: AddressbookPage,
+          }
+        ],
       },
       {
         path: 'settings/backup',

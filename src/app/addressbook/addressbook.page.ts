@@ -5,7 +5,8 @@ import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 import {ProposalDetailsComponent} from "../components/proposal-details/proposal-details.component";
-import {AddressBookObject, AddressbookService} from "../services/addressbook/addressbook.service";
+import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
+import { Clipboard } from '@capacitor/clipboard';
 
 @Component({
   selector: 'app-addressbook',
@@ -17,9 +18,11 @@ import {AddressBookObject, AddressbookService} from "../services/addressbook/add
 export class AddressbookPage implements OnInit {
   public name: string = '';
   public address: string = '';
+
   public isModalAddContact: boolean = false;
   public isDevice = this.platform.is('capacitor');
-  public contacts: AddressBookObject[] = [];
+
+  public contacts: AddressBook = {};
 
   constructor(
     private router: Router,
@@ -27,10 +30,13 @@ export class AddressbookPage implements OnInit {
     public walletService: WalletService,
     public platform: Platform,
     public addressbookService: AddressbookService,
-  ) {
-    this.addressbookService.getAddressBook().then(addressBook => {
-      this.contacts = addressBook;
+  ) {}
+
+  async copyAddress(address: string) {
+    await Clipboard.write({
+      string: address
     });
+    await this.presentToast('Address copied to clipboard');
   }
 
  openModalAddContact() {
@@ -50,27 +56,41 @@ export class AddressbookPage implements OnInit {
   }
 
   async ngOnInit() {
+    this.addressbookService.getAddressBook().then(addressBook => {
+      this.contacts = addressBook || {};
+    });
   }
 
-  addContact() {
+  async addContact() {
     if (!this.name) {
-      this.presentToast('Name is required');
+      await this.presentToast('Name is required');
       return;
     }
     if (!this.address) {
-      this.presentToast('Address is required');
+      await this.presentToast('Address is required');
       return;
     }
     if (!this.walletService.checkValidBitcoinAddress(this.address)) {
-      this.presentToast('Invalid address');
+      await this.presentToast('Invalid address');
       return;
     }
     console.log('Adding contact', this.name, this.address);
-    this.addressbookService.addAddressBookEntry(this.name, this.address);
+    await this.addressbookService.addAddressBookEntry(this.address, this.name);
+    await this.presentToast('Contact added');
+    this.contacts = await this.addressbookService.getAddressBook() || {};
     this.closeModal();
   }
 
-  removeContact(address: string) {
-    this.addressbookService.removeAddressBookEntry(address);
+  async removeContact(address: string) {
+    await this.addressbookService.removeAddressBookEntry(address);
+    await this.presentToast('Contact removed');
   }
+
+  async clearAddressBook() {
+    await this.addressbookService.clearAddressBook();
+    await this.presentToast('Address book cleared');
+    this.contacts = {};
+  }
+
+  protected readonly Object = Object;
 }
