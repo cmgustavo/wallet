@@ -6,6 +6,7 @@ import {ProposeTransaction, WalletService} from "../services/wallet/wallet.servi
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 import {ProposalsComponent} from "../components/proposals/proposals.component";
+import {ThemeService} from "../services/theme/theme.service";
 
 @Component({
   selector: 'app-send',
@@ -24,6 +25,7 @@ export class SendPage implements OnInit {
   public proposals: ProposeTransaction[] = [];
 
   private isDevice = this.platform.is('capacitor');
+  private isDark = this.themeService.isDark;
 
   constructor(
     public platform: Platform,
@@ -31,6 +33,7 @@ export class SendPage implements OnInit {
     public actionSheetController: ActionSheetController,
     public alertController: AlertController,
     public addressbookService: AddressbookService,
+    public themeService: ThemeService,
     public toastController: ToastController) {
     this.to = '';
     this.amount = 0;
@@ -47,8 +50,10 @@ export class SendPage implements OnInit {
   }
 
   async openModalContacts() {
+    this.contacts = await this.addressbookService.getAddressBook() || {};
     const actionSheet = await this.actionSheetController.create({
       header: 'Contacts',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: Object.keys(this.contacts).map((address) => {
         return {
           text: this.contacts[address],
@@ -86,6 +91,7 @@ export class SendPage implements OnInit {
     this.to = '';
     this.amount = 0;
     this.message = '';
+    this.useTotalAmount = false;
   }
 
   async presentAlert(error: string) {
@@ -109,6 +115,7 @@ export class SendPage implements OnInit {
   public async sendMax() {
     const actionSheet = await this.actionSheetController.create({
       header: 'Send maximum amount',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Send Max',
@@ -146,6 +153,7 @@ export class SendPage implements OnInit {
   public async createTransaction() {
     const actionSheet = await this.actionSheetController.create({
       header: 'Confirm you are creating transaction of ' + this.amount + 'BTC to ' + this.to,
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Confirm and Create',

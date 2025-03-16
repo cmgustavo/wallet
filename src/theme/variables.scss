@@ -18,6 +18,11 @@ body.dark {
   --ion-color-primary-tint: #94aad8;
 }
 
+.ion-dark ion-action-sheet {
+  --background: #1e1e1e;
+  --color: #ffffff;
+}
+
 /* Dark Mode Toolbar */
 body.dark ion-toolbar {
   --ion-toolbar-background: var(--ion-background-color); /* Match background */

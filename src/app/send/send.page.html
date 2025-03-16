@@ -12,19 +12,22 @@
     </ion-toolbar>
   </ion-header>
 
-  <div *ngIf="proposals && proposals.length > 0">
-    <ion-text>
-      <h6 class="ion-padding-horizontal">Pending transaction</h6>
-    </ion-text>
-    <app-proposals-component [network]="walletService.wallet?.network"
-                             [proposals]="walletService.wallet?.proposals"></app-proposals-component>
-    <ion-item-divider></ion-item-divider>
-  </div>
+  <ion-card *ngIf="proposals && proposals.length > 0">
+    <ion-card-title class="ion-padding">
+      <ion-text>
+        Pending transaction
+      </ion-text>
+    </ion-card-title>
+    <ion-card-content>
+      <app-proposals-component [network]="walletService.wallet?.network"
+                               [proposals]="walletService.wallet?.proposals"></app-proposals-component>
+    </ion-card-content>
+  </ion-card>
 
   <ion-card>
-    <ion-card-title>
-      <ion-text>
-        <h4>New transaction</h4>
+    <ion-card-title class="ion-padding">
+      <ion-text color="primary">
+        New transaction
       </ion-text>
     </ion-card-title>
     <ion-card-content>
@@ -49,7 +52,8 @@
       <ion-item>
         <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
       </ion-item>
-      <ion-button class="ion-margin-vertical" expand="block" [disabled]="(!to || (!amount && !useTotalAmount) || showProgress)"
+      <ion-button class="ion-margin-vertical" expand="block"
+                  [disabled]="(!to || (!amount && !useTotalAmount) || showProgress)"
                   (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
       </ion-button>
     </ion-card-content>

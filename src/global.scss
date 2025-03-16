@@ -28,3 +28,33 @@
 ion-item {
   --transition: none;
 }
+
+.dark-action-sheet {
+  --color: #ffffff;
+}
+
+/* stylesheet */
+ion-action-sheet.dark-action-sheet .action-sheet-group {
+  background: #1e1e1e;
+}
+
+ion-action-sheet.dark-action-sheet .action-sheet-title {
+  color: #ffffff; /* Ensures title stands out */
+  font-weight: bold;
+}
+
+/* Improve cancel button styling */
+ion-action-sheet.dark-action-sheet .action-sheet-cancel::after {
+  background: #1e1e1e;
+  border-radius: 8px; /* Smooth rounded edges */
+}
+
+/* Button styling */
+ion-action-sheet.dark-action-sheet .action-sheet-button {
+  color: #ffffff;
+}
+
+ion-action-sheet.dark-action-sheet .action-sheet-button.ion-focused,
+ion-action-sheet.dark-action-sheet .action-sheet-button:hover {
+  color: #ffffff;
+}

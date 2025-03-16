@@ -23,6 +23,7 @@ export class SettingsPage implements OnInit {
   public isModalDisclaimerOpen: boolean = false;
   public isDevice = this.platform.is('capacitor');
   public selectedNetwork = IS_TESTNET ? 'testnet' : 'livenet';
+  private isDark = this.themeService.isDark;
 
   constructor(
     private themeService: ThemeService,
@@ -77,6 +78,7 @@ export class SettingsPage implements OnInit {
   public async removeAllContacts() {
     const actionSheet = await this.actionSheetController.create({
       header: 'Confirm delete all contacts?',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Delete',
@@ -116,6 +118,7 @@ export class SettingsPage implements OnInit {
   public async deleteWallet() {
     const actionSheet = await this.actionSheetController.create({
       header: 'Confirm delete current Wallet?',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Delete',
@@ -155,6 +158,7 @@ export class SettingsPage implements OnInit {
   public async clearTransactions() {
     const actionSheetTx = await this.actionSheetController.create({
       header: 'Confirm clear all transactions?',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Confirm',
@@ -194,6 +198,7 @@ export class SettingsPage implements OnInit {
   public async clearProposals() {
     const actionSheetTx = await this.actionSheetController.create({
       header: 'Confirm clear all proposals?',
+      cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
           text: 'Confirm',
