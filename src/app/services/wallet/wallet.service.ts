@@ -375,15 +375,17 @@ export class WalletService {
     const changeAddresses = addresses.filter((address) => {
       return address.change === 1;
     });
-    // Get latest change address
-    const lastChangeAddress = changeAddresses[changeAddresses.length - 1];
+    if (changeAddresses.length !== 0) {
+      // Get latest change address
+      const lastChangeAddress = changeAddresses[changeAddresses.length - 1];
 
-    // Check if changeAddress has no funds
-    const balance = lastChangeAddress.balance ||
-      await this.getAddressBalance(lastChangeAddress.address);
+      // Check if changeAddress has no funds
+      const balance = lastChangeAddress.balance ||
+        await this.getAddressBalance(lastChangeAddress.address);
 
-    if (balance === 0) {
-      return lastChangeAddress.address;
+      if (balance === 0) {
+        return lastChangeAddress.address;
+      }
     }
 
     const newAddress = await this.createAddress(changeAddresses.length, 1);
@@ -503,23 +505,6 @@ export class WalletService {
     console.log('All UTXOs:', allUtxos);
 
     return allUtxos;
-
-
-    /*
-    const promises = addresses.map(async (address) => {
-      const utxos = await this.getUtxosByAddress(address.address);
-      return {
-        address: address.address,
-        scriptpubkey: bitcoin.address.toOutputScript(address.address, network).toString('hex'),
-        utxos: utxos
-      };
-    });
-    const data = await Promise.all(promises);
-    return data.filter((d: any) => {
-      return d.utxos[0];
-    });
-
-     */
   }
 
   public broadcastTx = async (txHex: string) => {
