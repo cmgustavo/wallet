@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  isTestnet: true,
-  apiURL: "https://blockstream.info/testnet/api/",
+  isTestnet: false,
+  apiURL: "https://blockstream.info/api/",
 };
 
 /*

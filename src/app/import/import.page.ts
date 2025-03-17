@@ -54,6 +54,7 @@ export class ImportPage implements OnInit {
       await this.walletService.updateTransactions();
       this.showProgress = false;
       await this.presentToast('Wallet imported successfully');
+      this.router.navigate(['/tabs/home']);
     }).catch(async error => {
       console.log('Error importing wallet', error);
       if (this.isDevice) {
@@ -70,7 +71,6 @@ export class ImportPage implements OnInit {
       }
     });
 
-    this.router.navigate(['/tabs/home']);
   }
 
 }

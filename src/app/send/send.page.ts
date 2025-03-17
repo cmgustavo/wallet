@@ -1,7 +1,14 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ActionSheetController, AlertController, IonicModule, Platform, ToastController, IonToggle} from '@ionic/angular';
+import {
+  ActionSheetController,
+  AlertController,
+  IonicModule,
+  Platform,
+  ToastController,
+  IonToggle
+} from '@ionic/angular';
 import {ProposeTransaction, WalletService} from "../services/wallet/wallet.service";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
@@ -38,6 +45,17 @@ export class SendPage implements OnInit {
     this.to = '';
     this.amount = 0;
     this.message = '';
+  }
+
+  handleRefresh(event: any) {
+    setTimeout(async () => {
+      await this.walletService.loadSaved();
+      this.proposals = await this.walletService.getProposals();
+      this.addressbookService.getAddressBook().then(addressBook => {
+        this.contacts = addressBook || {};
+      });
+      event.target.complete();
+    }, 2000);
   }
 
   async ngOnInit() {
@@ -128,13 +146,14 @@ export class SendPage implements OnInit {
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
+              this.proposals = await this.walletService.getProposals();
               await this.presentToast('Transaction Proposal created');
-            } ).catch(async (e) => {
+            }).catch(async (e) => {
               console.log('Transaction Proposal creation error', e);
               this.showProgress = false;
               this.clearForm();
               await this.presentAlert(e.toString());
-            } );
+            });
           },
         },
         {
@@ -168,6 +187,7 @@ export class SendPage implements OnInit {
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
+              this.proposals = await this.walletService.getProposals();
               await this.presentToast('Transaction Proposal created');
             } catch (e: any) {
               console.log('Transaction Proposal creation error', e);

@@ -6,6 +6,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import {Preferences} from "@capacitor/preferences";
 import {IS_TESTNET, API_ENDPOINT} from "../../constants";
 import {CapacitorHttp, HttpResponse} from '@capacitor/core';
+import * as net from "net";
 
 export type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
@@ -146,17 +147,34 @@ export class WalletService {
   }
 
   public importWallet = async (mnemonic: string, name: string): Promise<{
-    address: string | undefined
+    wallet: Wallet | undefined;
   }> => {
     if (!bip39.validateMnemonic(mnemonic)) {
       throw new Error('Invalid mnemonic');
     }
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(mnemonic));
-    const publicKey = root.derivePath(this.getDerivationPath(0, 0, IS_TESTNET)).publicKey;
 
-    const address = this.getAddress(publicKey, IS_TESTNET);
+    const newAddresses: Address[] = [];
+    // Import the wallet GAP limit 5
+    for (let i = 0; i < 5; i++) {
+      for (let change = 0; change < 2; change++) {
+        const addressNode = root.derivePath(this.getDerivationPath(i, change, IS_TESTNET));
+        const publicKey = addressNode.publicKey;
+        const address = this.getAddress(publicKey, IS_TESTNET);
+        if (!address) throw new Error('Could not generate address');
+        const balance = await this.getAddressBalance(address);
+        newAddresses.push({
+          address: address,
+          balance: balance,
+          index: i,
+          change: change
+        });
+      }
+      // Add a delay to prevent rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 
-    if (!address) throw new Error('Could not generate address');
+    if (!newAddresses[0]) throw new Error('Could not generate address to Import Wallet');
 
     // Save the mnemonic and address to storage
     this.wallet = {
@@ -165,21 +183,14 @@ export class WalletService {
       balance: 0,
       balanceStr: '0 BTC',
       network: IS_TESTNET ? 'testnet' : 'livenet',
-      addresses: [{
-        address: address,
-        balance: 0,
-        index: 0,
-        change: 0
-      }],
+      addresses: newAddresses,
       transactions: [],
       proposals: []
     };
     await this.saveWallet();
 
-    // Return the mnemonic and address as an object
-    return {
-      address: address
-    };
+    // Return wallet obj
+    return this.wallet ? {wallet: this.wallet} : {wallet: undefined};
   }
 
   private saveWallet = async () => {
@@ -364,16 +375,26 @@ export class WalletService {
     const changeAddresses = addresses.filter((address) => {
       return address.change === 1;
     });
+    // Get latest change address
+    const lastChangeAddress = changeAddresses[changeAddresses.length - 1];
 
-    const address = await this.createAddress(changeAddresses.length, 1);
+    // Check if changeAddress has no funds
+    const balance = lastChangeAddress.balance ||
+      await this.getAddressBalance(lastChangeAddress.address);
+
+    if (balance === 0) {
+      return lastChangeAddress.address;
+    }
+
+    const newAddress = await this.createAddress(changeAddresses.length, 1);
     addresses.push({
-      address: address,
+      address: newAddress,
       balance: 0,
       index: changeAddresses.length,
       change: 1
     });
     await this.saveWallet();
-    return address;
+    return newAddress;
   }
 
   public getNewAddress = async () => {
@@ -384,15 +405,26 @@ export class WalletService {
     const noChangeAddresses = addresses.filter((address) => {
       return address.change !== 1;
     });
-    const address = await this.createAddress(noChangeAddresses.length, 0);
+
+    // Get latest address
+    const latestAddress = noChangeAddresses[noChangeAddresses.length - 1];
+    // Check if latest address has no funds
+    const balance = latestAddress.balance ||
+      await this.getAddressBalance(latestAddress.address);
+
+    if (balance === 0) {
+      return latestAddress.address;
+    }
+
+    const newAddress = await this.createAddress(noChangeAddresses.length, 0);
     addresses.push({
-      address: address,
+      address: newAddress,
       balance: 0,
       index: noChangeAddresses.length,
       change: 0
     });
     await this.saveWallet();
-    return address;
+    return newAddress;
   }
 
   private getAddressBalance = async (address: string): Promise<number> => {
@@ -459,6 +491,21 @@ export class WalletService {
     const addresses = this.wallet.addresses;
     if (!addresses) throw new Error('Addresses no generated');
     const network = IS_TESTNET ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+    const allUtxos: any[] = [];
+
+    for (const address of addresses) {
+      const utxos = await this.getUtxosByAddress(address.address);
+      utxos.forEach((utxo: any) => allUtxos.push({...utxo, address})); // Add address to each UTXO
+      // delay to prevent rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    console.log('All UTXOs:', allUtxos);
+
+    return allUtxos;
+
+
+    /*
     const promises = addresses.map(async (address) => {
       const utxos = await this.getUtxosByAddress(address.address);
       return {
@@ -471,13 +518,15 @@ export class WalletService {
     return data.filter((d: any) => {
       return d.utxos[0];
     });
+
+     */
   }
 
   public broadcastTx = async (txHex: string) => {
     const url = `${API_ENDPOINT}/tx`;
     const options = {
       url,
-      headers: { 'Content-Type': 'text/plain' },
+      headers: {'Content-Type': 'text/plain'},
       data: txHex,
     };
     try {
@@ -521,9 +570,8 @@ export class WalletService {
   // Create a transaction with MAX amount available
   public sendMax = async (to: string, message: string): Promise<any> => {
     if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
-    const filteredUtxos = await this.getUTXOs();
 
-    const utxos = filteredUtxos.flatMap((utxo: any) => utxo.utxos);
+    const utxos = await this.getUTXOs();
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
     const feeRate = await this.currentFeeRate();
     const estimatedSize = utxos.length * 148 + 2 * 34 + 10; // Approximate size
@@ -532,26 +580,26 @@ export class WalletService {
     if (changeValue < 0) throw new Error('Insufficient funds for fee');
     if (balanceSat < feeSat) throw new Error('Insufficient funds including fee');
 
+    const network = this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
     const isTestnet = this.wallet.network === 'testnet';
-    const psbt = new bitcoin.Psbt({network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin});
+    const psbt = new bitcoin.Psbt({network: network});
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(this.wallet.mnemonic));
 
     const utxoScriptTypes: { [key: string]: ScriptType } = {};
-    filteredUtxos.forEach((input: any) => {
-      let scriptType: ScriptType = this.detectScriptType(input.scriptpubkey);
-      input.utxos.forEach((utxo: any) => {
-        utxoScriptTypes[utxo.txid] = scriptType;
-        if (this.isDust(utxo.value, scriptType)) {
-          throw new Error('Amount is too low and considered dust');
-        }
-        psbt.addInput({
-          hash: utxo.txid,
-          index: utxo.vout,
-          witnessUtxo: {
-            script: Buffer.from(input.scriptpubkey, 'hex'),
-            value: utxo.value,
-          },
-        });
+    utxos.forEach((utxo: any) => {
+      const scriptPubKey = bitcoin.address.toOutputScript(utxo.address.address, network).toString('hex');
+      let scriptType: ScriptType = this.detectScriptType(scriptPubKey);
+      utxoScriptTypes[utxo.txid] = scriptType;
+      if (this.isDust(utxo.value, scriptType)) {
+        throw new Error('Amount is too low and considered dust');
+      }
+      psbt.addInput({
+        hash: utxo.txid,
+        index: utxo.vout,
+        witnessUtxo: {
+          script: Buffer.from(scriptPubKey, 'hex'),
+          value: utxo.value,
+        },
       });
     });
 
@@ -570,12 +618,17 @@ export class WalletService {
       try {
         const scriptType = utxoScriptTypes[utxo.txid];
         console.log('Script Type:', scriptType);
-        const derivationPath = this.getDerivationPath(utxo.index, 0, isTestnet);
+        const utxoChange = utxo.address.change;
+        const utxoIndex = utxo.address.index;
+        console.log('Is Change:', utxoChange);
+        const derivationPath = this.getDerivationPath(utxoIndex, utxoChange, isTestnet);
         console.log('Derivation Path:', derivationPath);
         const keyPair = root.derivePath(derivationPath);
         console.log('Derived public key:', keyPair.publicKey.toString('hex'));
         const derivedPubKey = keyPair.publicKey.toString('hex');
-        console.log(`Expected: ${utxo.pubkey}, Derived: ${derivedPubKey}`);
+        const scriptPubKey = bitcoin.address.toOutputScript(utxo.address.address, network).toString('hex');
+        console.log(`Expected: ${scriptPubKey}, Derived: ${derivedPubKey}`);
+
         psbt.signInput(index, keyPair);
       } catch (e) {
         console.log('Error signing input', e);
@@ -615,9 +668,8 @@ export class WalletService {
 
   public createTx = async (to: string, amount: number, message: string): Promise<any> => {
     if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
-    const filteredUtxos = await this.getUTXOs();
 
-    const utxos = filteredUtxos.flatMap((utxo: any) => utxo.utxos);
+    const utxos = await this.getUTXOs();
     const amountSat = this.btcToSatoshis(amount);
     console.log('Amount:', amount, 'BTC');
     console.log('Amount:', amountSat, 'Satoshis');
@@ -636,26 +688,26 @@ export class WalletService {
     if (balanceSat < amountSat + feeSat) throw new Error('Insufficient funds including fee');
 
     console.log('Transaction Fee:', this.satoshisToBtc(feeSat), 'BTC');
+    const network = this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
     const isTestnet = this.wallet.network === 'testnet';
     const psbt = new bitcoin.Psbt({network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin});
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(this.wallet.mnemonic));
 
     const utxoScriptTypes: { [key: string]: ScriptType } = {};
-    filteredUtxos.forEach((input: any) => {
-      let scriptType: ScriptType = this.detectScriptType(input.scriptpubkey);
-      input.utxos.forEach((utxo: any) => {
-        utxoScriptTypes[utxo.txid] = scriptType;
-        if (this.isDust(utxo.value, scriptType)) {
-          throw new Error('Amount is too low and considered dust');
-        }
-        psbt.addInput({
-          hash: utxo.txid,
-          index: utxo.vout,
-          witnessUtxo: {
-            script: Buffer.from(input.scriptpubkey, 'hex'),
-            value: utxo.value,
-          },
-        });
+    utxos.forEach((utxo: any) => {
+      const scriptPubKey = bitcoin.address.toOutputScript(utxo.address.address, network).toString('hex');
+      let scriptType: ScriptType = this.detectScriptType(scriptPubKey);
+      utxoScriptTypes[utxo.txid] = scriptType;
+      if (this.isDust(utxo.value, scriptType)) {
+        throw new Error('Amount is too low and considered dust');
+      }
+      psbt.addInput({
+        hash: utxo.txid,
+        index: utxo.vout,
+        witnessUtxo: {
+          script: Buffer.from(scriptPubKey, 'hex'),
+          value: utxo.value,
+        },
       });
     });
 
@@ -665,7 +717,7 @@ export class WalletService {
         value: amountSat,
       });
       if (changeValue > 546) { // Prevent dust output
-        psbt.addOutput({ address: await this.getNewChangeAddress(), value: changeValue });
+        psbt.addOutput({address: await this.getNewChangeAddress(), value: changeValue});
       } else {
         console.log('Change is dust, adding to fee:', changeValue);
       }
@@ -679,12 +731,16 @@ export class WalletService {
       try {
         const scriptType = utxoScriptTypes[utxo.txid];
         console.log('Script Type:', scriptType);
-        const derivationPath = this.getDerivationPath(utxo.index, 0, isTestnet);
+        const utxoChange = utxo.address.change;
+        const utxoIndex = utxo.address.index;
+        console.log('Is Change:', utxoChange);
+        const derivationPath = this.getDerivationPath(utxoIndex, utxoChange, isTestnet);
         console.log('Derivation Path:', derivationPath);
         const keyPair = root.derivePath(derivationPath);
         console.log('Derived public key:', keyPair.publicKey.toString('hex'));
         const derivedPubKey = keyPair.publicKey.toString('hex');
-        console.log(`Expected: ${utxo.pubkey}, Derived: ${derivedPubKey}`);
+        const scriptPubKey = bitcoin.address.toOutputScript(utxo.address.address, network).toString('hex');
+        console.log(`Expected: ${scriptPubKey}, Derived: ${derivedPubKey}`);
         psbt.signInput(index, keyPair);
       } catch (e) {
         console.log('Error signing input', e);
