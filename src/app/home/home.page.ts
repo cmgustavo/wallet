@@ -20,10 +20,12 @@ export class HomePage implements OnInit {
   public isModalDisclaimerOpen: boolean = false;
   public showProgress: boolean = false;
   public isBalanceHidden: boolean = false;
+  public totalFiatAmount: string | null = null;
+
   constructor(
     public walletService: WalletService,
     private router: Router,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {
     this.configService.checkDisclaimer().then((value) => {
       if (!value) {
@@ -40,6 +42,11 @@ export class HomePage implements OnInit {
     this.configService.balance$.subscribe((value) => {
       this.isBalanceHidden = value === 'true' ? true : false;
     });
+    if (this.walletService.wallet?.balance) {
+      this.totalFiatAmount = await this.walletService.getFiatCurrency(
+        this.walletService.wallet?.balance
+      );
+    }
   }
 
   handleRefresh(event: any) {

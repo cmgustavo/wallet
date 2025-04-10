@@ -29,6 +29,9 @@
       <ion-text>
         <h1>{{ isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr }}</h1>
       </ion-text>
+      <ion-text *ngIf="totalFiatAmount">
+        <h3>{{ isBalanceHidden ? 'Hidden' : totalFiatAmount }}</h3>
+      </ion-text>
     </ion-card-content>
   </ion-card>
 

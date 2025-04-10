@@ -6,7 +6,8 @@ import * as bitcoin from 'bitcoinjs-lib';
 import {Preferences} from "@capacitor/preferences";
 import {IS_TESTNET, API_ENDPOINT} from "../../constants";
 import {CapacitorHttp, HttpResponse} from '@capacitor/core';
-import * as net from "net";
+import {formatCurrency} from "@angular/common";
+import {RateService, RateResponse} from "../rates/rates.service";
 
 export type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
@@ -70,7 +71,7 @@ export class WalletService {
   private WALLET_STORAGE: string = 'wallet';
   private bip32 = BIP32Factory(ecc);
 
-  constructor() {
+  constructor(public rateService : RateService) {
     if (isDevMode()) {
       console.log('Development mode');
     } else {
@@ -89,6 +90,16 @@ export class WalletService {
   private satoshisToBtc = (satoshis: number): number => {
     return satoshis / 1e8; // 100,000,000 Satoshis = 1 BTC
   };
+
+  public getFiatCurrency = async (satoshis: number): Promise<string | null> => {
+    const currentRate = await this.rateService.getRates();
+    if (!currentRate) {
+      return null;
+    }
+    const btcValue = this.satoshisToBtc(satoshis);
+    const fiatValue = btcValue * currentRate.rate;
+    return formatCurrency(fiatValue, 'en', '$', 'USD');
+  }
 
   private getAddress = (publicKey: any, isTestnet: boolean): string | undefined => {
     return bitcoin.payments.p2wpkh({
