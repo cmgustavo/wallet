@@ -25,8 +25,7 @@ export class AppComponent {
       // Set dark mode
       document.body.classList.toggle('dark', isDark);
       if (isDevice) {
-        StatusBar.setOverlaysWebView({ overlay: true });
-        StatusBar.setStyle({style: isDark ? Style.Light : Style.Dark});
+        StatusBar.setStyle({style: isDark ? Style.Dark : Style.Light});
       }
     });
   }
