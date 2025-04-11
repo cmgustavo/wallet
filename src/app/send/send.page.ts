@@ -14,6 +14,7 @@ import {AddressBook, AddressbookService} from "../services/addressbook/addressbo
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 import {ProposalsComponent} from "../components/proposals/proposals.component";
 import {ThemeService} from "../services/theme/theme.service";
+import {RateResponse, RateService} from "../services/rates/rates.service";
 
 @Component({
   selector: 'app-send',
@@ -30,6 +31,7 @@ export class SendPage implements OnInit {
   public useTotalAmount: boolean = false;
   public contacts: AddressBook = {};
   public proposals: ProposeTransaction[] = [];
+  public fiatRate: RateResponse = undefined;
 
   private isDevice = this.platform.is('capacitor');
   private isDark = this.themeService.isDark;
@@ -41,7 +43,8 @@ export class SendPage implements OnInit {
     public alertController: AlertController,
     public addressbookService: AddressbookService,
     public themeService: ThemeService,
-    public toastController: ToastController) {
+    public toastController: ToastController,
+    public rateService: RateService) {
     this.to = '';
     this.amount = 0;
     this.message = '';
@@ -65,6 +68,17 @@ export class SendPage implements OnInit {
     this.addressbookService.getAddressBook().then(addressBook => {
       this.contacts = addressBook || {};
     });
+    this.rateService.currentFiatRate$.subscribe((value) => {
+      this.fiatRate = value;
+    });
+  }
+
+  getFiatRate(btc: number | undefined) {
+    if (!btc) {
+      return '';
+    }
+    const satoshi = Math.round(btc * 1e8); // 1 BTC = 100,000,000 Satoshis
+    return this.rateService.fiatCurrencyStr(satoshi);
   }
 
   async openModalContacts() {

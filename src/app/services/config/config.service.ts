@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Preferences} from "@capacitor/preferences";
 import {BehaviorSubject} from "rxjs";
+import {DEFAULT_FIAT_CURRENCY} from "../../constants";
 
 @Injectable({
   providedIn: 'root'
@@ -10,13 +11,13 @@ export class ConfigService {
   private APP_BALANCE_STORAGE: string = 'app_balance';
   private APP_CURRENCY_STORAGE: string = 'app_currency';
   private balanceHidden = new BehaviorSubject<string>('false');
-  balance$ = this.balanceHidden.asObservable(); // Observable for components to subscribe
+  balance$ = this.balanceHidden.asObservable();
 
   constructor() {
     this.checkBalanceHidden().then((value) => {
       this.balanceHidden.next(value || 'false');
     });
-    this.setAppCurrency('USD');
+    this.setAppCurrency(DEFAULT_FIAT_CURRENCY);
   }
 
   public setBalanceHidden = (value: string) => {
@@ -55,6 +56,6 @@ export class ConfigService {
 
   public getAppCurrency = async (): Promise<string> => {
     const { value } = await Preferences.get({ key: this.APP_CURRENCY_STORAGE });
-    return value || 'USD';
+    return value || DEFAULT_FIAT_CURRENCY;
   };
 }

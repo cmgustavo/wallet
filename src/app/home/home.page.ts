@@ -8,6 +8,7 @@ import {AddressesComponent} from "../components/addresses/addresses.component";
 import {TransactionsComponent} from "../components/transactions/transactions.component";
 import {ProposalsComponent} from "../components/proposals/proposals.component";
 import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component";
+import {RateResponse, RateService} from "../services/rates/rates.service";
 
 @Component({
   selector: 'app-home',
@@ -20,12 +21,13 @@ export class HomePage implements OnInit {
   public isModalDisclaimerOpen: boolean = false;
   public showProgress: boolean = false;
   public isBalanceHidden: boolean = false;
-  public totalFiatAmount: string | null = null;
+  public fiatRate: RateResponse = undefined;
 
   constructor(
     public walletService: WalletService,
     private router: Router,
     private configService: ConfigService,
+    private rateService: RateService
   ) {
     this.configService.checkDisclaimer().then((value) => {
       if (!value) {
@@ -42,11 +44,13 @@ export class HomePage implements OnInit {
     this.configService.balance$.subscribe((value) => {
       this.isBalanceHidden = value === 'true' ? true : false;
     });
-    if (this.walletService.wallet?.balance) {
-      this.totalFiatAmount = await this.walletService.getFiatCurrency(
-        this.walletService.wallet?.balance
-      );
-    }
+    this.rateService.currentFiatRate$.subscribe((value) => {
+      this.fiatRate = value;
+    });
+  }
+
+  getFiatRate(satoshi: number) {
+    return this.rateService.fiatCurrencyStr(satoshi);
   }
 
   handleRefresh(event: any) {

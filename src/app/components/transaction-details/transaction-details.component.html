@@ -1,45 +1,49 @@
+<ion-list>
+  <ion-list-header class="ion-padding-bottom">
+    <ion-label>
+      <ion-text>
+        <h1 class="ion-text-capitalize">{{ tx?.type }}</h1>
+        <span *ngIf="tx?.confirmed" class="confirmed">Confirmed</span>
+        <span *ngIf="!tx?.confirmed" class="pending">Pending</span>
+      </ion-text>
+    </ion-label>
+  </ion-list-header>
+  <ion-item>
+    <ion-label>
+      Amount
+    </ion-label>
+    <ion-note slot="end">
+      {{ tx?.amountStr }}
+      <div class="ion-text-end">
+        {{ getFiatRate(tx?.amount) }}
+      </div>
+    </ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      Fee
+    </ion-label>
+    <ion-note slot="end">{{ tx?.feeStr }}</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      Date
+    </ion-label>
+    <ion-note slot="end">{{ tx?.date }}</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-label>
+      TxID
+    </ion-label>
+    <ion-note slot="end" class="truncate">{{ tx?.id }}</ion-note>
+  </ion-item>
+  <ion-item *ngIf="tx?.notes">
+    <ion-label>
+      Notes
+    </ion-label>
+    <ion-note slot="end">{{ tx?.notes }}</ion-note>
+  </ion-item>
+</ion-list>
 
-  <ion-list>
-    <ion-list-header class="ion-padding-bottom">
-      <ion-label>
-        <ion-text>
-          <h1 class="ion-text-capitalize">{{tx?.type}}</h1>
-          <span *ngIf="tx?.confirmed" class="confirmed">Confirmed</span>
-          <span *ngIf="!tx?.confirmed" class="pending">Pending</span>
-        </ion-text>
-      </ion-label>
-    </ion-list-header>
-    <ion-item>
-      <ion-label>
-        Amount
-      </ion-label>
-      <ion-note slot="end">{{tx?.amountStr}}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        Fee
-      </ion-label>
-      <ion-note slot="end">{{tx?.feeStr}}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-       Date
-      </ion-label>
-      <ion-note slot="end">{{tx?.date}}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        TxID
-      </ion-label>
-      <ion-note slot="end" class="truncate">{{tx?.id}}</ion-note>
-    </ion-item>
-    <ion-item *ngIf="tx?.notes">
-      <ion-label>
-        Notes
-      </ion-label>
-      <ion-note slot="end">{{tx?.notes}}</ion-note>
-    </ion-item>
-  </ion-list>
-
-  <ion-button class="ion-margin" fill="outline" expand="block" (click)="openExplorer()">View Transaction</ion-button>
+<ion-button class="ion-margin" fill="outline" expand="block" (click)="openExplorer()">View Transaction</ion-button>
 

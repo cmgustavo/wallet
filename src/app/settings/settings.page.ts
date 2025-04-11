@@ -6,9 +6,11 @@ import {WalletService} from '../services/wallet/wallet.service';
 import {ConfigService} from "../services/config/config.service";
 import {AddressbookService} from "../services/addressbook/addressbook.service";
 import {Router} from "@angular/router";
-import {NgIf} from "@angular/common";
+import {formatCurrency, NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
 import {IS_TESTNET} from "../constants";
+import {RateService} from "../services/rates/rates.service";
+import {RateResponse} from "../services/rates/rates.service";
 
 @Component({
   selector: 'app-settings',
@@ -24,6 +26,8 @@ export class SettingsPage implements OnInit {
   public isDevice = this.platform.is('capacitor');
   public selectedNetwork = IS_TESTNET ? 'testnet' : 'livenet';
   private isDark = this.themeService.isDark;
+  public fiatRate: RateResponse = undefined;
+  public fiatRateValueStr : string = '';
 
   constructor(
     private themeService: ThemeService,
@@ -34,6 +38,7 @@ export class SettingsPage implements OnInit {
     public platform: Platform,
     public configService: ConfigService,
     public addressbookService: AddressbookService,
+    public rateService: RateService,
   ) {
     this.darkMode = this.themeService.isDark;
     configService.checkBalanceHidden().then((value) => {
@@ -43,6 +48,13 @@ export class SettingsPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
+    this.rateService.currentFiatRate$.subscribe((value) => {
+      if (!value) {
+        return;
+      }
+      this.fiatRate = value;
+      this.fiatRateValueStr = formatCurrency(value.rate, 'en', '', value.code);
+    });
   }
 
   openAddressbook() {
@@ -63,6 +75,10 @@ export class SettingsPage implements OnInit {
 
   showDisclaimer() {
     this.isModalDisclaimerOpen = true;
+  }
+
+  public refreshExchangeRate() {
+    this.rateService.refreshExchangeRates();
   }
 
   public toggleDarkMode() {

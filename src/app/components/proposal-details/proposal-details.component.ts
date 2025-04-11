@@ -4,6 +4,7 @@ import {IonicModule, Platform, ToastController} from "@ionic/angular";
 import {NgForOf, NgIf} from "@angular/common";
 import {Toast} from "@capacitor/toast";
 import {Browser} from "@capacitor/browser";
+import {RateService} from "../../services/rates/rates.service";
 
 @Component({
   selector: 'app-proposal-details-component',
@@ -20,7 +21,11 @@ export class ProposalDetailsComponent {
   @Input() tx: ProposeTransaction | undefined;
   @Input() network: string | undefined;
   public showProgress: boolean = false;
-  constructor(public platform: Platform, public walletService: WalletService, public toastController: ToastController) {
+  constructor(
+    public platform: Platform,
+    public walletService: WalletService,
+    public toastController: ToastController,
+    public rateService: RateService) {
   }
 
   async presentToast(message: string) {
@@ -29,6 +34,14 @@ export class ProposalDetailsComponent {
       duration: 2000,
     });
     await toast.present();
+  }
+
+  getFiatRate(btc: number | undefined) {
+    if (!btc) {
+      return '';
+    }
+    const satoshi = Math.round(btc * 1e8); // 1 BTC = 100,000,000 Satoshis
+    return this.rateService.fiatCurrencyStr(satoshi);
   }
 
   public async openExplorer() {

@@ -50,8 +50,10 @@
         </ion-toggle>
       </ion-item>
       <ion-item>
-        <ion-input type="number" [disabled]="showProgress || useTotalAmount" label="Amount"
-                   [(ngModel)]="amount"></ion-input>
+        <ion-input
+          type="number" [disabled]="showProgress || useTotalAmount"
+          label="Amount" [(ngModel)]="amount"
+          [helperText]="getFiatRate(amount)"></ion-input>
       </ion-item>
       <ion-item>
         <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>

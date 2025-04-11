@@ -27,7 +27,14 @@
     </ion-item>
     <ion-item>
       <ion-label>Currency</ion-label>
-      <ion-note slot="end">USD</ion-note>
+      <ion-note slot="end" *ngIf="fiatRate">{{fiatRate.name}}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>Exchange Rate</ion-label>
+      <ion-note slot="end" *ngIf="fiatRate">1 BTC @{{fiatRateValueStr}}</ion-note>
+    </ion-item>
+    <ion-item button="RefreshExchangeRate" (click)="refreshExchangeRate()">
+      <ion-label color="secondary">Refresh Exchange Rate</ion-label>
     </ion-item>
     <ion-list-header>
       <ion-label>Contacts</ion-label>
@@ -66,7 +73,7 @@
     </ion-list-header>
     <ion-item>
       <ion-label>Version</ion-label>
-      <ion-note slot="end">1.0.4</ion-note>
+      <ion-note slot="end">1.0.5</ion-note>
     </ion-item>
     <ion-item>
       <ion-label>Network</ion-label>
