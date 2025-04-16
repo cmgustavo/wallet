@@ -1,7 +1,4 @@
-import { CapacitorConfig } from '@capacitor/cli';
-import {ThemeService} from "./src/app/services/theme/theme.service";
-
-const themeService: ThemeService = new ThemeService();
+import {CapacitorConfig} from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.simplewalletng',
@@ -14,8 +11,8 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       overlaysWebView: false,
-      style: themeService.isDark ? 'DARK' : 'LIGHT',
-      backgroundColor: themeService.isDark ? '#1a1a1a' : '#e8e8e8',
+      style: 'LIGHT',
+      backgroundColor: '#1a1a1a',
     },
   },
 };
