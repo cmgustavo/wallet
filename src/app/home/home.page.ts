@@ -6,7 +6,6 @@ import {WalletService} from "../services/wallet/wallet.service";
 import {ConfigService} from "../services/config/config.service";
 import {AddressesComponent} from "../components/addresses/addresses.component";
 import {TransactionsComponent} from "../components/transactions/transactions.component";
-import {ProposalsComponent} from "../components/proposals/proposals.component";
 import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component";
 import {RateResponse, RateService} from "../services/rates/rates.service";
 
@@ -15,7 +14,7 @@ import {RateResponse, RateService} from "../services/rates/rates.service";
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent, ProposalsComponent],
+  imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent],
 })
 export class HomePage implements OnInit {
   public isModalDisclaimerOpen: boolean = false;

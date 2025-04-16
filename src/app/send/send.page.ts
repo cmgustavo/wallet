@@ -9,10 +9,9 @@ import {
   ToastController,
   IonToggle
 } from '@ionic/angular';
-import {ProposeTransaction, WalletService} from "../services/wallet/wallet.service";
+import {ProposeTransaction, ProposeTransactionObj, WalletService} from "../services/wallet/wallet.service";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
-import {ProposalsComponent} from "../components/proposals/proposals.component";
 import {ThemeService} from "../services/theme/theme.service";
 import {RateResponse, RateService} from "../services/rates/rates.service";
 
@@ -21,7 +20,7 @@ import {RateResponse, RateService} from "../services/rates/rates.service";
   templateUrl: './send.page.html',
   styleUrls: ['./send.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ProposalsComponent],
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class SendPage implements OnInit {
   public showProgress: boolean = false;
@@ -30,7 +29,7 @@ export class SendPage implements OnInit {
   public message: string;
   public useTotalAmount: boolean = false;
   public contacts: AddressBook = {};
-  public proposals: ProposeTransaction[] = [];
+  public proposal: ProposeTransactionObj;
   public fiatRate: RateResponse = undefined;
 
   private isDevice = this.platform.is('capacitor');
@@ -53,7 +52,7 @@ export class SendPage implements OnInit {
   handleRefresh(event: any) {
     setTimeout(async () => {
       await this.walletService.loadSaved();
-      this.proposals = await this.walletService.getProposals();
+      this.proposal = await this.walletService.getProposals();
       this.addressbookService.getAddressBook().then(addressBook => {
         this.contacts = addressBook || {};
       });
@@ -63,8 +62,8 @@ export class SendPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
-    // Check there is proposals
-    this.proposals = await this.walletService.getProposals();
+    // Check there is proposal
+    this.proposal = await this.walletService.getProposals();
     this.addressbookService.getAddressBook().then(addressBook => {
       this.contacts = addressBook || {};
     });
@@ -73,7 +72,14 @@ export class SendPage implements OnInit {
     });
   }
 
-  getFiatRate(btc: number | undefined) {
+  getFiatRate(satoshi: number | undefined) {
+    if (!satoshi) {
+      return '';
+    }
+    return this.rateService.fiatCurrencyStr(satoshi);
+  }
+
+  getFiatRateBtc(btc: number | undefined) {
     if (!btc) {
       return '';
     }
@@ -152,7 +158,7 @@ export class SendPage implements OnInit {
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
-              this.proposals = await this.walletService.getProposals();
+              this.proposal = await this.walletService.getProposals();
               await this.presentToast('Transaction Proposal created');
             }).catch(async (e) => {
               console.log('Transaction Proposal creation error', e);
@@ -193,7 +199,7 @@ export class SendPage implements OnInit {
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
-              this.proposals = await this.walletService.getProposals();
+              this.proposal = await this.walletService.getProposals();
               await this.presentToast('Transaction Proposal created');
             } catch (e: any) {
               console.log('Transaction Proposal creation error', e);
@@ -215,5 +221,39 @@ export class SendPage implements OnInit {
       ],
     });
     await actionSheet.present();
+  }
+
+  public async remove() {
+    this.showProgress = true;
+    if (this.proposal) {
+      console.log('Removing proposal', this.proposal.id);
+      this.walletService.removeProposal(this.proposal.id).then((response) => {
+        console.log('Proposal removed', JSON.stringify(response));
+        this.showProgress = false;
+        this.proposal = undefined;
+        this.presentToast('Proposal removed successfully');
+      }).catch((error) => {
+        this.showProgress = false;
+        console.error('Error removing proposal', error);
+      });
+    }
+  }
+
+  public async broadcastProposal(tx: string | undefined) {
+    this.showProgress = true;
+    if (!tx) {
+      return;
+    }
+    console.log('Broadcasting proposal', tx);
+    this.walletService.broadcastTx(tx).then((response) => {
+      console.log('Proposal broadcasted', JSON.stringify(response));
+      this.showProgress = false;
+      this.proposal = undefined;
+      this.walletService.clearProposals();
+      this.presentToast('Proposal broadcasted successfully');
+    }).catch((error) => {
+      this.showProgress = false;
+      console.error('Error broadcasting proposal', error);
+    });
   }
 }

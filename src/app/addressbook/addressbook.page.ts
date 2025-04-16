@@ -4,7 +4,6 @@ import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
-import {ProposalDetailsComponent} from "../components/proposal-details/proposal-details.component";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import { Clipboard } from '@capacitor/clipboard';
 
@@ -13,7 +12,7 @@ import { Clipboard } from '@capacitor/clipboard';
   templateUrl: './addressbook.page.html',
   styleUrls: ['./addressbook.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ProposalDetailsComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
 export class AddressbookPage implements OnInit {
   public name: string = '';

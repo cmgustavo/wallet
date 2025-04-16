@@ -49,6 +49,7 @@ export interface ProposeTransaction {
   date: string;
   rawTx: string;
 }
+export type ProposeTransactionObj = ProposeTransaction | undefined;
 
 export interface Wallet {
   mnemonic: string | undefined;
@@ -58,7 +59,7 @@ export interface Wallet {
   balanceStr?: string;
   addresses: Address[] | undefined;
   transactions: Transaction[] | undefined;
-  proposals?: ProposeTransaction[];
+  proposal?: ProposeTransaction | undefined;
 }
 
 @Injectable({
@@ -132,7 +133,6 @@ export class WalletService {
         change: 0
       }],
       transactions: [],
-      proposals: []
     };
     await this.saveWallet();
 
@@ -182,7 +182,6 @@ export class WalletService {
       network: IS_TESTNET ? 'testnet' : 'livenet',
       addresses: newAddresses,
       transactions: [],
-      proposals: []
     };
     await this.saveWallet();
 
@@ -213,10 +212,7 @@ export class WalletService {
 
   private saveProposal = async (id: string, to: string, amount: number, amountStr: string, fee: number, feeStr: string, message: string, date: string, rawTx: string) => {
     if (!this.wallet) throw new Error('Wallet not initialized');
-    if (!this.wallet.proposals) {
-      this.wallet.proposals = [];
-    }
-    this.wallet.proposals.push({
+    this.wallet.proposal = {
       id,
       to,
       amount,
@@ -226,33 +222,9 @@ export class WalletService {
       rawTx,
       feeStr,
       amountStr
-    });
+    };
     await this.saveWallet();
   };
-
-  public moveProposalToTransactions = async (id: string) => {
-    if (!this.wallet) throw new Error('Wallet not initialized');
-    if (!this.wallet.proposals) throw new Error('Proposals not initialized');
-    if (!this.wallet.transactions) throw new Error('Transactions not initialized');
-    const proposal = this.wallet.proposals.find((proposal) => {
-      return proposal.id === id;
-    });
-    if (!proposal) throw new Error('Proposal not found');
-    const tx: Transaction = {
-      id: proposal.id,
-      amount: proposal.amount,
-      amountStr: proposal.amountStr,
-      notes: proposal.message,
-      date: proposal.date,
-      block_time: new Date().getTime(),
-      confirmed: false,
-      fee: proposal.fee,
-      feeStr: proposal.feeStr,
-      type: 'sent',
-    };
-    this.wallet.transactions.push(tx);
-    await this.removeProposal(id);
-  }
 
   private getDerivationPath = (index: number = 0, change: number = 0, isTestnet: boolean = false) => {
     // m / purpose' / coin_type' / account' / change / address_index
@@ -335,21 +307,19 @@ export class WalletService {
 
   public getProposals = async () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
-    return this.wallet.proposals || [];
+    return this.wallet.proposal;
   }
 
   public clearProposals = async () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
-    this.wallet.proposals = [];
+    this.wallet.proposal = undefined;
     await this.saveWallet();
   }
 
   public removeProposal = async (id: string) => {
     if (!this.wallet) throw new Error('Wallet not initialized');
-    if (!this.wallet.proposals) throw new Error('Proposals not initialized');
-    this.wallet.proposals = this.wallet.proposals.filter((proposal) => {
-      return proposal.id !== id;
-    });
+    if (!this.wallet.proposal) throw new Error('Proposal not initialized');
+    this.wallet.proposal = undefined;
     await this.saveWallet();
   }
 
@@ -642,7 +612,7 @@ export class WalletService {
       await this.saveProposal(
         tx.getId(),
         to,
-        this.satoshisToBtc(balanceSat - feeSat),
+        balanceSat - feeSat,
         `${this.satoshisToBtc(balanceSat - feeSat)} BTC`,
         feeSat,
         `${this.satoshisToBtc(feeSat)} BTC`,
@@ -757,7 +727,7 @@ export class WalletService {
       await this.saveProposal(
         tx.getId(),
         to,
-        amount,
+        amountSat,
         `${amount} BTC`,
         feeSat,
         `${this.satoshisToBtc(feeSat)} BTC`,
