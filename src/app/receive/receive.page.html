@@ -1,9 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Receive</ion-title>
-    <ion-buttons *ngIf="isDevice" slot="end">
-      <ion-button (click)="shareAddress()">
-        <ion-icon name="share"></ion-icon>
+    <ion-buttons slot="end">
+      <ion-button (click)="walletService.getNewAddress()">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Refresh
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -13,9 +14,10 @@
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Receive</ion-title>
-      <ion-buttons *ngIf="isDevice" slot="end">
-        <ion-button (click)="shareAddress()">
-          <ion-icon name="share"></ion-icon>
+      <ion-buttons slot="end">
+        <ion-button (click)="walletService.getNewAddress()">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Refresh
         </ion-button>
       </ion-buttons>
     </ion-toolbar>
@@ -28,15 +30,23 @@
         <qr-code value="{{walletService.getLastAddress().address}}" size="300" errorCorrectionLevel="M"
                  centerImageSrc="../../assets/bitcoin-btc-logo.svg"></qr-code>
       </ion-card-content>
-      <ion-text class="ion-text-center">
-        <p class="overflow-dots" (click)="copyAddress()">
-          <ion-icon name="copy-outline"></ion-icon>
-          {{walletService.getLastAddress().address}}
-        </p>
-      </ion-text>
-
+      <ion-card-content>
+        <ion-text class="ion-text-center">
+          <p class="overflow-dots" (click)="copyAddress()">
+            <ion-icon name="copy-outline"></ion-icon>
+            {{ walletService.getLastAddress().address }}
+          </p>
+        </ion-text>
+        <ion-button
+          *ngIf="isDevice"
+          class="ion-margin-vertical"
+          expand="block"
+          (click)="shareAddress()">
+          <ion-icon slot="start" name="share-outline"></ion-icon>
+          Share Address
+        </ion-button>
+      </ion-card-content>
     </ion-card>
-    <ion-button class="ion-margin" expand="block" (click)="walletService.getNewAddress()">Generate New Address</ion-button>
   </ng-template>
   <ng-template #NoAddress>
     <ion-card color="warning">

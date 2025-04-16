@@ -55,6 +55,7 @@ export class HomePage implements OnInit {
 
   handleRefresh(event: any) {
     setTimeout(async () => {
+      await this.rateService.refreshExchangeRates();
       await this.walletService.updateTotalBalance();
       await this.walletService.updateTransactions();
       await this.walletService.loadSaved();

@@ -33,7 +33,7 @@
       <ion-label>Exchange Rate</ion-label>
       <ion-note slot="end" *ngIf="fiatRate">1 BTC @{{fiatRateValueStr}}</ion-note>
     </ion-item>
-    <ion-item button="RefreshExchangeRate" (click)="refreshExchangeRate()">
+    <ion-item lines="none" button="RefreshExchangeRate" (click)="refreshExchangeRate()">
       <ion-label color="secondary">Refresh Exchange Rate</ion-label>
     </ion-item>
     <ion-list-header>
@@ -42,7 +42,7 @@
     <ion-item button="Addressbook" (click)="openAddressbook()">
       <ion-label>Address Book</ion-label>
     </ion-item>
-    <ion-item button="RemoveAllContacts" (click)="removeAllContacts()">
+    <ion-item lines="none" button="RemoveAllContacts" (click)="removeAllContacts()">
       <ion-label color="danger">Remove all contacts</ion-label>
     </ion-item>
     <div *ngIf="walletService.wallet">
@@ -64,7 +64,7 @@
       <ion-item button="Clear" (click)="clearTransactions()">
         <ion-label>Clear Cache</ion-label>
       </ion-item>
-      <ion-item button="Clear" (click)="clearProposals()">
+      <ion-item lines="none" button="Clear" (click)="clearProposals()">
         <ion-label color="danger">Remove all proposals</ion-label>
       </ion-item>
     </div>
@@ -79,7 +79,7 @@
       <ion-label>Network</ion-label>
       <ion-note slot="end">{{selectedNetwork}}</ion-note>
     </ion-item>
-    <ion-item button="Disclaimer" (click)="showDisclaimer()">
+    <ion-item lines="none" button="Disclaimer" (click)="showDisclaimer()">
       <ion-label>Disclaimer</ion-label>
     </ion-item>
   </ion-list>

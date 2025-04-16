@@ -21,25 +21,31 @@
 
   <ion-card>
     <ion-card-header>
-      Enter 12 words to import your wallet
+      <ion-card-title>
+        Enter 12 words to import your wallet
+      </ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <ion-item>
-        <ion-input label="Name" [(ngModel)]="name" [disabled]="showProgress"></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-select disabled="true" label="Network" placeholder="Select Network" [(ngModel)]="selectedNetwork">
-          <ion-select-option value="livenet">Livenet</ion-select-option>
-          <ion-select-option value="testnet">Testnet</ion-select-option>
-        </ion-select>
-      </ion-item>
-      <ion-item>
-        <ion-textarea label="Words" [(ngModel)]="mnemonic" [disabled]="showProgress"></ion-textarea>
-      </ion-item>
+      <ion-list>
+        <ion-item>
+          <ion-input label="Name" [(ngModel)]="name" [disabled]="showProgress"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-select disabled="true" label="Network" placeholder="Select Network" [(ngModel)]="selectedNetwork">
+            <ion-select-option value="livenet">Livenet</ion-select-option>
+            <ion-select-option value="testnet">Testnet</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-textarea label="Words" [(ngModel)]="mnemonic" [disabled]="showProgress"></ion-textarea>
+        </ion-item>
+      </ion-list>
+      <ion-button
+        class="ion-margin-vertical"
+        expand="block"
+        (click)="submitRequest()" [disabled]="!mnemonic || !name || showProgress">
+        Import
+      </ion-button>
     </ion-card-content>
   </ion-card>
 </ion-content>
-
-<ion-footer class="ion-no-border">
-  <ion-button expand="block" (click)="submitRequest()" [disabled]="showProgress">Import</ion-button>
-</ion-footer>

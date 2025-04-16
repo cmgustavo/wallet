@@ -36,11 +36,11 @@ export class ProposalDetailsComponent {
     await toast.present();
   }
 
-  getFiatRate(btc: number | undefined) {
+  getFiatRate(btc: number | undefined, isSatoshi: boolean = false) {
     if (!btc) {
       return '';
     }
-    const satoshi = Math.round(btc * 1e8); // 1 BTC = 100,000,000 Satoshis
+    const satoshi = isSatoshi ? btc : Math.round(btc * 1e8); // 1 BTC = 100,000,000 Satoshis
     return this.rateService.fiatCurrencyStr(satoshi);
   }
 

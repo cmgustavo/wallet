@@ -69,6 +69,9 @@ export class WalletService {
   private WALLET_STORAGE: string = 'wallet';
   private bip32 = BIP32Factory(ecc);
 
+  private cachedFeeRate: number = 0;
+  private lastFetch: number = 0;
+
   constructor() {
     if (this.wallet) {
       this.updateTotalBalance();
@@ -469,10 +472,13 @@ export class WalletService {
 
   private currentFeeRate = async (): Promise<number> => {
     const url = `${API_ENDPOINT}/fee-estimates`;
-    const response = await fetch(url);
-    const feeRates = await response.json();
-    const feeRate = feeRates['2'];
-    return feeRate;
+    if (!this.cachedFeeRate || Date.now() - this.lastFetch > 60000) {
+      const response = await fetch(url);
+      const feeRates = await response.json();
+      this.cachedFeeRate = IS_TESTNET ? feeRates['25'] : feeRates['6']; // 6 blocks
+      this.lastFetch = Date.now();
+    }
+    return this.cachedFeeRate;
   }
 
   private getUtxosByAddress = async (address: string): Promise<any[]> => {
@@ -553,8 +559,16 @@ export class WalletService {
     const utxos = await this.getUTXOs();
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
     const feeRate = await this.currentFeeRate();
-    const estimatedSize = utxos.length * 148 + 2 * 34 + 10; // Approximate size
-    const feeSat = Math.round(estimatedSize * feeRate);
+
+    const inputSize = 68; // Assuming P2WPKH
+    const outputSize = 31;
+    const overhead = 10;
+
+    const estimatedSize = utxos.length * inputSize + 2 * outputSize + overhead;
+    const feeSat = Math.round(estimatedSize * feeRate * 1.1); // 10% safety buffer
+    console.log('Estimated size:', estimatedSize);
+    console.log('Fee Rate:', feeRate, 'satoshis per byte');
+    console.log('Estimated Fee:', feeSat, 'satoshis');
     const changeValue = balanceSat - feeSat;
     if (changeValue < 0) throw new Error('Insufficient funds for fee');
     if (balanceSat < feeSat) throw new Error('Insufficient funds including fee');
@@ -653,10 +667,14 @@ export class WalletService {
     console.log('Amount:', amount, 'BTC');
     console.log('Amount:', amountSat, 'Satoshis');
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-
     const feeRate = await this.currentFeeRate();
-    const estimatedSize = utxos.length * 148 + 2 * 34 + 10; // Approximate size
-    const feeSat = Math.round(estimatedSize * feeRate);
+
+    const inputSize = 68; // Assuming P2WPKH
+    const outputSize = 31;
+    const overhead = 10;
+
+    const estimatedSize = utxos.length * inputSize + 2 * outputSize + overhead;
+    const feeSat = Math.round(estimatedSize * feeRate * 1.1); // 10% safety buffer
     console.log('Estimated size:', estimatedSize);
     console.log('Fee Rate:', feeRate, 'satoshis per byte');
     console.log('Estimated Fee:', feeSat, 'satoshis');

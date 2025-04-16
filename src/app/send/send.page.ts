@@ -94,15 +94,7 @@ export class SendPage implements OnInit {
             this.to = address;
           },
         };
-      }).concat([
-        {
-          text: 'Cancel',
-          icon: 'close',
-          handler: () => {
-            // Nothing to do, action sheet is automatically closed
-          },
-        },
-      ]),
+      }),
     });
     await actionSheet.present();
   }

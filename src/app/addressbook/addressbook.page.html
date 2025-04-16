@@ -69,7 +69,11 @@
           <ion-label>Address</ion-label>
           <ion-input [(ngModel)]="address"></ion-input>
         </ion-item>
-        <ion-button expand="block" (click)="addContact()">Save</ion-button>
+        <ion-button
+          class="ion-margin-vertical"
+          expand="block"
+          [disabled]="!name || !address"
+          (click)="addContact()">Save</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>

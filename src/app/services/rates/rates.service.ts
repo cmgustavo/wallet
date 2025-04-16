@@ -38,7 +38,7 @@ export class RateService {
     });
   }
 
-  public refreshExchangeRates = () => {
+  public refreshExchangeRates = async() => {
     this.getRemoteRates().then((rate) => {
       this.currentFiatRateObs.next(rate);
       this.setFiatRate(rate);
@@ -63,7 +63,7 @@ export class RateService {
     }
     const btcValue = satoshis / 1e8;
     const fiatValue = btcValue * this.currentFiatRateObs.value.rate;
-    return formatCurrency(fiatValue, 'en', '$', 'USD', '1.2-6');
+    return formatCurrency(fiatValue, 'en', '$', 'USD', '1.2-2');
   }
 
   public async getRemoteRates(): Promise<RateResponse> {

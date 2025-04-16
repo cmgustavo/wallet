@@ -16,24 +16,15 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-card *ngIf="proposals && proposals.length > 0">
-    <ion-card-title class="ion-padding">
-      <ion-text>
-        Pending transaction
-      </ion-text>
-    </ion-card-title>
-    <ion-card-content>
-      <app-proposals-component [network]="walletService.wallet?.network"
-                               [proposals]="walletService.wallet?.proposals"></app-proposals-component>
-    </ion-card-content>
-  </ion-card>
-
+  <div *ngIf="proposals && proposals.length > 0">
+    <div class="ion-padding-horizontal">
+      <h6>Pending transaction</h6>
+    </div>
+    <app-proposals-component [network]="walletService.wallet?.network"
+                             [proposals]="walletService.wallet?.proposals"></app-proposals-component>
+    <ion-item-divider></ion-item-divider>
+  </div>
   <ion-card>
-    <ion-card-title class="ion-padding">
-      <ion-text color="primary">
-        New transaction
-      </ion-text>
-    </ion-card-title>
     <ion-card-content>
       <ion-item>
         <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>

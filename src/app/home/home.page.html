@@ -16,28 +16,32 @@
   </ion-refresher>
 
   <ion-card *ngIf="walletService.wallet">
-    <ion-card-header>
-      <ion-card-subtitle>{{ walletService.wallet.network }}</ion-card-subtitle>
+    <ion-card-header class="ion-text-center">
+      <ion-card-subtitle *ngIf="walletService.wallet.network === 'testnet'" class="ion-text-capitalize">
+        {{ walletService.wallet.network }}
+      </ion-card-subtitle>
       <ion-card-title>
-        <ion-text color="primary">
+        <ion-text>
           {{ walletService.wallet.name }}
         </ion-text>
       </ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
-      <ion-text>
+      <ion-text color="primary">
         <h1>{{ isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr }}</h1>
       </ion-text>
       <ion-text *ngIf="fiatRate && walletService.wallet.balance">
-        <h3>{{getFiatRate(walletService.wallet.balance)}}</h3>
+        <h2 class="fiat">{{ getFiatRate(walletService.wallet.balance) }}</h2>
       </ion-text>
     </ion-card-content>
   </ion-card>
 
   <div *ngIf="walletService.wallet">
-    <div class="ion-padding">
-      <h5>Transactions Sent</h5>
+    <div class="ion-margin-horizontal">
+      <ion-text>
+        <h6>Transactions</h6>
+      </ion-text>
     </div>
     <app-transactions-component [network]="walletService.wallet.network"
                                 [transactions]="walletService.wallet.transactions"></app-transactions-component>

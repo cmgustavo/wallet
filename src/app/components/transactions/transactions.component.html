@@ -1,20 +1,22 @@
 <div *ngIf="transactions?.length; then ListTx else NoTx"></div>
 <ng-template #ListTx>
 
-    <ion-list>
-      <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
-        <ion-icon *ngIf="tx.type === 'received'" slot="start" name="arrow-down"></ion-icon>
-        <ion-icon *ngIf="tx.type === 'sent'" slot="start" name="arrow-up"></ion-icon>
-        <ion-icon *ngIf="tx.type === 'moved'" slot="start" name="arrow-right"></ion-icon>
-        <ion-label>
-          {{tx.amountStr}}
-        </ion-label>
-        <ion-note slot="end">
-          {{tx.date.split(',')[0]}}<br>
-          {{tx.date.split(',')[1]}}
-        </ion-note>
-      </ion-item>
-    </ion-list>
+  <ion-list>
+    <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
+      <ion-icon *ngIf="tx.type === 'received'" slot="start" name="arrow-down"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'sent'" slot="start" name="arrow-up"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'moved'" slot="start" name="arrow-right"></ion-icon>
+      <ion-label>
+        <h4>
+          {{ tx.amountStr }}
+        </h4>
+      </ion-label>
+      <ion-note slot="end">
+        {{ tx.date.split(',')[0] }}<br>
+        {{ tx.date.split(',')[1] }}
+      </ion-note>
+    </ion-item>
+  </ion-list>
 
   <ion-modal [isOpen]="isModalTransactionDetailsOpen">
     <ng-template>

@@ -77,8 +77,8 @@ export class SettingsPage implements OnInit {
     this.isModalDisclaimerOpen = true;
   }
 
-  public refreshExchangeRate() {
-    this.rateService.refreshExchangeRates();
+  public async refreshExchangeRate() {
+    await this.rateService.refreshExchangeRates();
   }
 
   public toggleDarkMode() {

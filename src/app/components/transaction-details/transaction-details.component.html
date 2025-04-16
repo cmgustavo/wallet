@@ -14,7 +14,7 @@
     </ion-label>
     <ion-note slot="end">
       {{ tx?.amountStr }}
-      <div class="ion-text-end">
+      <div class="ion-text-end fiat">
         {{ getFiatRate(tx?.amount) }}
       </div>
     </ion-note>
@@ -23,7 +23,12 @@
     <ion-label>
       Fee
     </ion-label>
-    <ion-note slot="end">{{ tx?.feeStr }}</ion-note>
+    <ion-note slot="end">
+      {{ tx?.feeStr }}
+      <div class="ion-text-end fiat">
+        {{ getFiatRate(tx?.fee) }}
+      </div>
+    </ion-note>
   </ion-item>
   <ion-item>
     <ion-label>

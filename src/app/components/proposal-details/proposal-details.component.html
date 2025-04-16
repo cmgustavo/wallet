@@ -22,7 +22,12 @@
     <ion-label>
       Fee
     </ion-label>
-    <ion-note slot="end">{{ tx?.feeStr }}</ion-note>
+    <ion-note slot="end">
+      {{ tx?.feeStr }}
+      <div class="fiat ion-text-end">
+        {{ getFiatRate(tx?.fee, true) }}
+      </div>
+    </ion-note>
   </ion-item>
   <ion-item>
     <ion-label>
@@ -44,7 +49,7 @@
   </ion-item>
   <ion-item *ngIf="tx?.rawTx">
     <ion-textarea
-      label="Raw Transaction"
+      label="Raw"
       style="height: 200px"
       [value]="tx?.rawTx"
       readonly
