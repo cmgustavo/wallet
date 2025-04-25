@@ -6,6 +6,7 @@ import {WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import { Clipboard } from '@capacitor/clipboard';
+import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 
 @Component({
   selector: 'app-addressbook',
@@ -78,6 +79,18 @@ export class AddressbookPage implements OnInit {
     await this.presentToast('Contact added');
     this.contacts = await this.addressbookService.getAddressBook() || {};
     this.closeModal();
+  }
+
+  async scanQRCode() {
+    if (this.isDevice) {
+      const result = await CapacitorBarcodeScanner.scanBarcode(
+        {hint: CapacitorBarcodeScannerTypeHintALLOption.ALL}
+      );
+      if (result.ScanResult) {
+        console.log('Scanned QR code', result.ScanResult);
+        this.address = result.ScanResult;
+      }
+    }
   }
 
   async removeContact(address: string) {

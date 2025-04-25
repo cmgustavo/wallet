@@ -3,9 +3,9 @@
 
   <ion-list>
     <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
-      <ion-icon *ngIf="tx.type === 'received'" slot="start" name="arrow-down"></ion-icon>
-      <ion-icon *ngIf="tx.type === 'sent'" slot="start" name="arrow-up"></ion-icon>
-      <ion-icon *ngIf="tx.type === 'moved'" slot="start" name="arrow-right"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'sent'" slot="start" color="danger" name="arrow-up-circle-outline"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'moved'" slot="start" name="arrow-forward-circle-outline"></ion-icon>
       <ion-label>
         <h4>
           {{ tx.amountStr }}

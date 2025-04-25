@@ -152,8 +152,8 @@ export class WalletService {
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(mnemonic));
 
     const newAddresses: Address[] = [];
-    // Import the wallet GAP limit 5
-    for (let i = 0; i < 5; i++) {
+    // Import wallet GAP limit 3
+    for (let i = 0; i < 3; i++) {
       for (let change = 0; change < 2; change++) {
         const addressNode = root.derivePath(this.getDerivationPath(i, change, IS_TESTNET));
         const publicKey = addressNode.publicKey;
@@ -238,36 +238,86 @@ export class WalletService {
     return transactions;
   }
 
-  private getTransaction = async (txid: string, address: string): Promise<Transaction | undefined> => {
+  private getTransaction = async (txid: string, address: Address): Promise<Transaction | undefined> => {
     const url = `${API_ENDPOINT}/tx/${txid}`;
     const response = await fetch(url);
-    const transaction = await response.json();
-
-    // Check if the address is in the inputs or outputs
-    const inputs = transaction.vin.map((input: any) => input.prevout.scriptpubkey_address);
-    const outputs = transaction.vout.map((output: any) => output.scriptpubkey_address);
-
-    const date = transaction.status.block_time ? new Date(transaction.status.block_time * 1000) : undefined;
-    const amount = transaction.vout.reduce((previousValue: number, currentValue: any) => {
-      if (!outputs.includes(address)) {
-        return previousValue - currentValue.value;
-      }
-      return currentValue.scriptpubkey_address === address ? previousValue + currentValue.value : previousValue;
-    }, 0);
-    const tx: Transaction = {
-      id: transaction.txid,
-      amount,
-      amountStr: this.satoshisToBtc(amount) + ' BTC',
-      notes: '',
-      date: typeof date === 'object' && date ? date.toLocaleString() : new Date().toLocaleString(),
-      block_time: transaction.status.block_time,
-      confirmed: transaction.status.confirmed,
-      fee: transaction.fee,
-      feeStr: this.satoshisToBtc(transaction.fee) + ' BTC',
-      type: inputs.includes(address) ? 'sent' : outputs.includes(address) ? 'received' : 'moved',
-    };
-    return tx;
+    return await response.json();
   }
+
+  private parseTransaction = async (transaction: any, address: Address): Promise<Transaction | undefined> => {
+    if (!this.wallet?.addresses) return undefined;
+
+    // Get all wallet addresses (both regular and change)
+    const walletAddresses = this.wallet.addresses.map(addr => addr.address);
+
+    // Check if all inputs and outputs are our own addresses
+    const allInputsAreOurs = transaction.vin.every((input: any) =>
+        walletAddresses.includes(input.prevout.scriptpubkey_address)
+    );
+    const allOutputsAreOurs = transaction.vout.every((output: any) =>
+        walletAddresses.includes(output.scriptpubkey_address)
+    );
+
+    // If both inputs and outputs are our addresses, it's an internal transfer
+    const isInternalTransfer = allInputsAreOurs && allOutputsAreOurs;
+
+    // For non-internal transfers, check if it's outgoing by looking at inputs
+    const isOutgoing = !isInternalTransfer && transaction.vin.some((input: any) =>
+        walletAddresses.includes(input.prevout.scriptpubkey_address)
+    );
+
+    let amount = 0;
+
+    if (isInternalTransfer) {
+        // For internal transfers:
+        // Sum amounts received by the current address
+        amount = transaction.vout.reduce((sum: number, output: any) => {
+            if (output.scriptpubkey_address === address.address) {
+                return sum + output.value;
+            }
+            return sum;
+        }, 0);
+    } else if (isOutgoing) {
+        // For outgoing transactions:
+        // Sum all outputs to external addresses (not in wallet)
+        amount = transaction.vout.reduce((sum: number, output: any) => {
+            if (!walletAddresses.includes(output.scriptpubkey_address)) {
+                return sum + output.value;
+            }
+            return sum;
+        }, 0);
+        // Make amount negative for outgoing transactions
+        amount = -amount;
+    } else {
+        // For incoming transactions:
+        // Sum only outputs to the current address
+        amount = transaction.vout.reduce((sum: number, output: any) => {
+            if (output.scriptpubkey_address === address.address) {
+                return sum + output.value;
+            }
+            return sum;
+        }, 0);
+    }
+
+    const date = transaction.status.block_time ?
+        new Date(transaction.status.block_time * 1000) :
+        new Date();
+
+    const tx: Transaction = {
+        id: transaction.txid,
+        amount,
+        amountStr: this.satoshisToBtc(amount) + ' BTC',
+        notes: '',
+        date: date.toLocaleString(),
+        block_time: transaction.status.block_time,
+        confirmed: transaction.status.confirmed,
+        fee: transaction.fee,
+        feeStr: this.satoshisToBtc(transaction.fee) + ' BTC',
+        type: isInternalTransfer ? 'moved' : isOutgoing ? 'sent' : 'received'
+    };
+
+    return tx;
+};
 
   public updateTransactions = async () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
@@ -277,17 +327,16 @@ export class WalletService {
     const promises = addresses.map(async (address) => {
       const transactions = await this.getTransactionsByAddress(address.address);
       const promises = transactions.map(async (transaction: any) => {
-        const tx = await this.getTransaction(transaction.txid, address.address);
-        // Update existent transaction
-        txs.forEach((t, index) => {
-          if (tx && t.id === tx.id) {
-            txs[index] = tx;
+        console.log('Transaction:', transaction);
+        // Parse transaction to get the details and add to the wallet
+        const tx = await this.parseTransaction(transaction, address);
+        if (tx) {
+          const existingTx = txs.find((t) => t.id === tx.id);
+          if (!existingTx) {
+            txs.push(tx);
           }
-        });
-        // Only insert if not exists in wallet transactions array
-        if (tx && !txs.find((t) => t.id === tx.id)) {
-          txs.push(tx);
         }
+        await new Promise(resolve => setTimeout(resolve, 1000));
       });
       await Promise.all(promises);
     });

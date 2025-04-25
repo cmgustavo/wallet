@@ -52,7 +52,9 @@ export class SendPage implements OnInit {
   handleRefresh(event: any) {
     setTimeout(async () => {
       await this.walletService.loadSaved();
-      this.proposal = await this.walletService.getProposals();
+      if (this.walletService.wallet) {
+        this.proposal = await this.walletService.getProposals();
+      }
       this.addressbookService.getAddressBook().then(addressBook => {
         this.contacts = addressBook || {};
       });
@@ -62,8 +64,9 @@ export class SendPage implements OnInit {
 
   async ngOnInit() {
     await this.walletService.loadSaved();
-    // Check there is proposal
-    this.proposal = await this.walletService.getProposals();
+    if (this.walletService.wallet) {
+      this.proposal = await this.walletService.getProposals();
+    }
     this.addressbookService.getAddressBook().then(addressBook => {
       this.contacts = addressBook || {};
     });
