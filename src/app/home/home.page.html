@@ -48,18 +48,32 @@
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">
-    <ion-grid>
-      <ion-row>
-        <ion-col>
-          <ion-button (click)="createWallet()">Create Wallet</ion-button>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button fill="outline" (click)="importWallet()">Import an existent Wallet</ion-button>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div class="empty-wallet-container">
+      <!-- Icon container with animation -->
+      <div class="icon-container">
+        <ion-icon name="wallet-outline" class="wallet-icon"></ion-icon>
+        <ion-icon name="cash-outline" class="cash-icon"></ion-icon>
+      </div>
+
+      <!-- Message container -->
+      <div class="message-container">
+        <h2>No Wallet Found</h2>
+        <p>Get started by creating a new wallet or importing an existing one</p>
+      </div>
+
+      <!-- Buttons container -->
+      <div class="buttons-container">
+        <ion-button expand="block" class="create-button" (click)="createWallet()">
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          Create New Wallet
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="importWallet()" class="import-button">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Import Existing Wallet
+        </ion-button>
+      </div>
+    </div>
   </div>
 
   <ion-modal [isOpen]="isModalDisclaimerOpen">

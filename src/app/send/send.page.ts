@@ -14,6 +14,7 @@ import {AddressBook, AddressbookService} from "../services/addressbook/addressbo
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 import {ThemeService} from "../services/theme/theme.service";
 import {RateResponse, RateService} from "../services/rates/rates.service";
+import {wallet} from "ionicons/icons";
 
 @Component({
   selector: 'app-send',
@@ -259,4 +260,6 @@ export class SendPage implements OnInit {
       console.error('Error broadcasting proposal', error);
     });
   }
+
+  protected readonly wallet = wallet;
 }

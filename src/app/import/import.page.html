@@ -20,11 +20,6 @@
   </ion-header>
 
   <ion-card>
-    <ion-card-header>
-      <ion-card-title>
-        Enter 12 words to import your wallet
-      </ion-card-title>
-    </ion-card-header>
     <ion-card-content>
       <ion-list>
         <ion-item>
@@ -37,15 +32,18 @@
           </ion-select>
         </ion-item>
         <ion-item>
-          <ion-textarea label="Words" [(ngModel)]="mnemonic" [disabled]="showProgress"></ion-textarea>
+          <ion-textarea label="12 Words" [(ngModel)]="mnemonic" [disabled]="showProgress"></ion-textarea>
         </ion-item>
       </ion-list>
-      <ion-button
-        class="ion-margin-vertical"
-        expand="block"
-        (click)="submitRequest()" [disabled]="!mnemonic || !name || showProgress">
-        Import
-      </ion-button>
     </ion-card-content>
   </ion-card>
 </ion-content>
+
+
+<ion-footer class="ion-no-border">
+  <ion-button
+    expand="full"
+    (click)="submitRequest()" [disabled]="!mnemonic || !name || showProgress">
+    Import
+  </ion-button>
+</ion-footer>

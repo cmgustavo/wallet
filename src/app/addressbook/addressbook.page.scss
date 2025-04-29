@@ -1,0 +1,138 @@
+.empty-contacts-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.illustration-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 2rem;
+
+  .circle-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    border-radius: 50%;
+    transform: scale(1);
+    animation: pulse 3s infinite;
+  }
+
+  .contact-icons {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .contact-icon {
+      &.main {
+        font-size: 5rem;
+        color: var(--ion-color-primary);
+        opacity: 0.9;
+      }
+
+      &.floating {
+        position: absolute;
+        font-size: 2rem;
+        color: var(--ion-color-secondary);
+        opacity: 0;
+      }
+    }
+  }
+
+  .floating-contacts {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    .contact-icon:nth-child(1) {
+      top: 20%;
+      left: 20%;
+      animation: float 3s infinite;
+    }
+
+    .contact-icon:nth-child(2) {
+      top: 20%;
+      right: 20%;
+      animation: float 3s infinite 1s;
+    }
+
+    .contact-icon:nth-child(3) {
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: float 3s infinite 2s;
+    }
+  }
+}
+
+.message-container {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 1rem;
+    line-height: 1.4;
+    margin: 0 auto;
+    max-width: 280px;
+  }
+}
+
+.add-contact-button {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  --padding-start: 1.5rem;
+  --padding-end: 1.5rem;
+  height: 48px;
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-20px) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-40px) scale(0);
+    opacity: 0;
+  }
+}

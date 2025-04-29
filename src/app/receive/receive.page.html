@@ -1,8 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Receive</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="walletService.getNewAddress()">
+    <ion-buttons *ngIf="walletService.wallet?.addresses" slot="end">
+      <ion-button class="custom-small-button" (click)="walletService.getNewAddress()">
         <ion-icon slot="start" name="refresh-outline"></ion-icon>
         Refresh
       </ion-button>
@@ -14,8 +14,8 @@
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Receive</ion-title>
-      <ion-buttons slot="end">
-        <ion-button (click)="walletService.getNewAddress()">
+      <ion-buttons *ngIf="walletService.wallet?.addresses"  slot="end">
+        <ion-button class="custom-small-button" (click)="walletService.getNewAddress()">
           <ion-icon slot="start" name="refresh-outline"></ion-icon>
           Refresh
         </ion-button>
@@ -49,9 +49,24 @@
     </ion-card>
   </ng-template>
   <ng-template #NoAddress>
-    <ion-card color="warning">
-      <ion-card-content>No Addresses</ion-card-content>
-    </ion-card>
+    <div class="empty-state-container">
+      <!-- Animated icons container -->
+      <div class="icons-container">
+        <div class="wallet-icon-wrapper">
+          <ion-icon name="wallet-outline" class="main-icon"></ion-icon>
+          <div class="arrow-container">
+            <ion-icon name="arrow-down" class="arrow-icon"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message container -->
+      <div class="message-container">
+        <h2>No Receiving Address</h2>
+        <p>You need to create or import a wallet first to receive Bitcoin</p>
+      </div>
+    </div>
+
   </ng-template>
 
 </ion-content>

@@ -94,14 +94,16 @@
 
   </div>
 
+  <div *ngIf="walletService.wallet?.addresses; then ShowSendForm else NoSendForm"></div>
+  <ng-template #ShowSendForm>
   <ion-card *ngIf="!proposal">
     <ion-card-content>
       <ion-item>
         <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>
-        <ion-button size="small" slot="end" shape="round" (click)="scanQRCode()">
+        <ion-button class="action-small-button" slot="end" (click)="scanQRCode()">
           <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
         </ion-button>
-        <ion-button size="small" slot="end" shape="round" (click)="openModalContacts()">
+        <ion-button class="action-small-button" slot="end" (click)="openModalContacts()">
           <ion-icon name="person-outline" slot="icon-only"></ion-icon>
         </ion-button>
       </ion-item>
@@ -125,5 +127,27 @@
       </ion-button>
     </ion-card-content>
   </ion-card>
+  </ng-template>
+  <ng-template #NoSendForm>
+    <div class="empty-state-container">
+      <!-- Animated illustration container -->
+      <div class="illustration-container">
+        <div class="circle-background"></div>
+        <div class="icons-wrapper">
+          <ion-icon name="wallet-outline" class="wallet-icon"></ion-icon>
+          <div class="animation-container">
+            <ion-icon name="close-circle" class="status-icon"></ion-icon>
+            <div class="pulse-ring"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message container -->
+      <div class="message-container">
+        <h2>No Funds Available</h2>
+        <p>You need to have funds in your wallet before you can make a transaction</p>
+      </div>
+    </div>
+  </ng-template>
 
 </ion-content>

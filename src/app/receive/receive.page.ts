@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform, ToastController} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {QrCodeModule} from "ng-qrcode";
-import { Clipboard } from '@capacitor/clipboard';
+import {Clipboard} from '@capacitor/clipboard';
 import {Share} from "@capacitor/share";
 import {Toast} from "@capacitor/toast";
 
@@ -17,7 +17,11 @@ import {Toast} from "@capacitor/toast";
 })
 export class ReceivePage implements OnInit {
   public isDevice = this.platform.is('capacitor');
-  constructor(public walletService: WalletService, public platform: Platform, public toastCtrl: ToastController) {
+
+  constructor(
+    public walletService: WalletService,
+    public platform: Platform,
+    public toastCtrl: ToastController) {
   }
 
   async ngOnInit() {

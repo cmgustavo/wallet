@@ -49,6 +49,7 @@ export interface ProposeTransaction {
   date: string;
   rawTx: string;
 }
+
 export type ProposeTransactionObj = ProposeTransaction | undefined;
 
 export interface Wallet {
@@ -153,7 +154,8 @@ export class WalletService {
 
     const newAddresses: Address[] = [];
     // Import wallet GAP limit 3
-    for (let i = 0; i < 3; i++) {
+    const gapLimit = IS_TESTNET ? 1 : 3;
+    for (let i = 0; i < gapLimit; i++) {
       for (let change = 0; change < 2; change++) {
         const addressNode = root.derivePath(this.getDerivationPath(i, change, IS_TESTNET));
         const publicKey = addressNode.publicKey;
@@ -252,10 +254,10 @@ export class WalletService {
 
     // Check if all inputs and outputs are our own addresses
     const allInputsAreOurs = transaction.vin.every((input: any) =>
-        walletAddresses.includes(input.prevout.scriptpubkey_address)
+      walletAddresses.includes(input.prevout.scriptpubkey_address)
     );
     const allOutputsAreOurs = transaction.vout.every((output: any) =>
-        walletAddresses.includes(output.scriptpubkey_address)
+      walletAddresses.includes(output.scriptpubkey_address)
     );
 
     // If both inputs and outputs are our addresses, it's an internal transfer
@@ -263,61 +265,61 @@ export class WalletService {
 
     // For non-internal transfers, check if it's outgoing by looking at inputs
     const isOutgoing = !isInternalTransfer && transaction.vin.some((input: any) =>
-        walletAddresses.includes(input.prevout.scriptpubkey_address)
+      walletAddresses.includes(input.prevout.scriptpubkey_address)
     );
 
     let amount = 0;
 
     if (isInternalTransfer) {
-        // For internal transfers:
-        // Sum amounts received by the current address
-        amount = transaction.vout.reduce((sum: number, output: any) => {
-            if (output.scriptpubkey_address === address.address) {
-                return sum + output.value;
-            }
-            return sum;
-        }, 0);
+      // For internal transfers:
+      // Sum amounts received by the current address
+      amount = transaction.vout.reduce((sum: number, output: any) => {
+        if (output.scriptpubkey_address === address.address) {
+          return sum + output.value;
+        }
+        return sum;
+      }, 0);
     } else if (isOutgoing) {
-        // For outgoing transactions:
-        // Sum all outputs to external addresses (not in wallet)
-        amount = transaction.vout.reduce((sum: number, output: any) => {
-            if (!walletAddresses.includes(output.scriptpubkey_address)) {
-                return sum + output.value;
-            }
-            return sum;
-        }, 0);
-        // Make amount negative for outgoing transactions
-        amount = -amount;
+      // For outgoing transactions:
+      // Sum all outputs to external addresses (not in wallet)
+      amount = transaction.vout.reduce((sum: number, output: any) => {
+        if (!walletAddresses.includes(output.scriptpubkey_address)) {
+          return sum + output.value;
+        }
+        return sum;
+      }, 0);
+      // Make amount negative for outgoing transactions
+      amount = -amount;
     } else {
-        // For incoming transactions:
-        // Sum only outputs to the current address
-        amount = transaction.vout.reduce((sum: number, output: any) => {
-            if (output.scriptpubkey_address === address.address) {
-                return sum + output.value;
-            }
-            return sum;
-        }, 0);
+      // For incoming transactions:
+      // Sum only outputs to the current address
+      amount = transaction.vout.reduce((sum: number, output: any) => {
+        if (output.scriptpubkey_address === address.address) {
+          return sum + output.value;
+        }
+        return sum;
+      }, 0);
     }
 
     const date = transaction.status.block_time ?
-        new Date(transaction.status.block_time * 1000) :
-        new Date();
+      new Date(transaction.status.block_time * 1000) :
+      new Date();
 
     const tx: Transaction = {
-        id: transaction.txid,
-        amount,
-        amountStr: this.satoshisToBtc(amount) + ' BTC',
-        notes: '',
-        date: date.toLocaleString(),
-        block_time: transaction.status.block_time,
-        confirmed: transaction.status.confirmed,
-        fee: transaction.fee,
-        feeStr: this.satoshisToBtc(transaction.fee) + ' BTC',
-        type: isInternalTransfer ? 'moved' : isOutgoing ? 'sent' : 'received'
+      id: transaction.txid,
+      amount,
+      amountStr: this.satoshisToBtc(amount) + ' BTC',
+      notes: '',
+      date: date.toLocaleString(),
+      block_time: transaction.status.block_time,
+      confirmed: transaction.status.confirmed,
+      fee: transaction.fee,
+      feeStr: this.satoshisToBtc(transaction.fee) + ' BTC',
+      type: isInternalTransfer ? 'moved' : isOutgoing ? 'sent' : 'received'
     };
 
     return tx;
-};
+  };
 
   public updateTransactions = async () => {
     if (!this.wallet) throw new Error('Wallet not initialized');
@@ -447,12 +449,17 @@ export class WalletService {
 
   private getAddressBalance = async (address: string): Promise<number> => {
     const url = `${API_ENDPOINT}/address/${address}/utxo`;
-    const response = await fetch(url);
-    const utxos = await response.json();
-    const balance = utxos.reduce((previousValue: number, currentValue: any) => {
-      return previousValue + currentValue.value;
-    }, 0);
-    return balance;
+    try {
+      const response = await fetch(url);
+      const utxos = await response.json();
+      const balance = utxos.reduce((previousValue: number, currentValue: any) => {
+        return previousValue + currentValue.value;
+      }, 0);
+      return balance;
+    } catch (error) {
+      console.error('Error fetching address balance:', error);
+      throw new Error('Error fetching address balance');
+    }
   }
 
   public updateTotalBalance = async () => {

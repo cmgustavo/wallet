@@ -20,9 +20,6 @@
   </ion-header>
 
   <ion-card>
-    <ion-card-header>
-      Enter a name for your wallet and select a network
-    </ion-card-header>
     <ion-card-content>
       <ion-item>
         <ion-input label="Name" [(ngModel)]="name"></ion-input>
@@ -38,5 +35,5 @@
 </ion-content>
 
 <ion-footer class="ion-no-border">
-  <ion-button expand="block" (click)="submitRequest()">Create</ion-button>
+  <ion-button expand="full" (click)="submitRequest()">Create</ion-button>
 </ion-footer>

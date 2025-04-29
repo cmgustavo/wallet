@@ -5,8 +5,9 @@
     </ion-buttons>
     <ion-title>Address Book</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="openModalAddContact()">
+      <ion-button class="custom-small-button" (click)="openModalAddContact()">
         <ion-icon name="add"></ion-icon>
+        Add
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -20,7 +21,7 @@
       </ion-buttons>
       <ion-title size="large">Address Book</ion-title>
       <ion-buttons slot="end">
-        <ion-button (click)="openModalAddContact()">
+        <ion-button class="custom-small-button" (click)="openModalAddContact()">
           <ion-icon name="add"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -42,12 +43,33 @@
 
   </ng-template>
   <ng-template #NoContacts>
-    <div class="ion-padding">
-      <ion-button expand="block" (click)="openModalAddContact()">
-        <ion-icon name="add"></ion-icon>
-        Add a new contact
+    <div class="empty-contacts-container">
+      <!-- Animated illustration container -->
+      <div class="illustration-container">
+        <div class="circle-background"></div>
+        <div class="contact-icons">
+          <ion-icon class="contact-icon main" name="people-outline"></ion-icon>
+          <div class="floating-contacts">
+            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
+            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
+            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message container -->
+      <div class="message-container">
+        <h2>No Contacts Yet</h2>
+        <p>Start building your address book by adding your first contact</p>
+      </div>
+
+      <!-- Action button -->
+      <ion-button class="add-contact-button" (click)="openModalAddContact()">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        Add Your First Contact
       </ion-button>
     </div>
+
   </ng-template>
 
   <ion-modal [isOpen]="isModalAddContact">
@@ -55,7 +77,7 @@
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="primary">
-            <ion-button (click)="closeModal()">Close</ion-button>
+            <ion-button class="custom-small-button" (click)="closeModal()">Close</ion-button>
           </ion-buttons>
           <ion-title>Add Contact</ion-title>
         </ion-toolbar>
@@ -68,16 +90,17 @@
         <ion-item>
           <ion-label>Address</ion-label>
           <ion-input [(ngModel)]="address"></ion-input>
-          <ion-button size="small" slot="end" shape="round" (click)="scanQRCode()">
+          <ion-button class="action-small-button" slot="end" (click)="scanQRCode()">
             <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-item>
+      </ion-content>
+      <ion-footer class="ion-no-border">
         <ion-button
-          class="ion-margin-vertical"
-          expand="block"
+          expand="full"
           [disabled]="!name || !address"
           (click)="addContact()">Save</ion-button>
-      </ion-content>
+      </ion-footer>
     </ng-template>
   </ion-modal>
 

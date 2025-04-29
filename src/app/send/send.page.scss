@@ -4,3 +4,113 @@
   white-space: nowrap;
   width: 80%;
 }
+
+.empty-state-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.illustration-container {
+  position: relative;
+  margin-bottom: 2rem;
+
+  .circle-background {
+    width: 200px;
+    height: 200px;
+    background: rgba(var(--ion-color-warning-rgb), 0.1);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .icons-wrapper {
+    position: relative;
+    padding: 2rem;
+
+    .wallet-icon {
+      font-size: 6rem;
+      color: var(--ion-color-medium);
+      opacity: 0.8;
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  .animation-container {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 2;
+
+    .status-icon {
+      font-size: 2.5rem;
+      color: var(--ion-color-warning);
+      background: var(--ion-background-color);
+      border-radius: 50%;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 45px;
+      height: 45px;
+      border: 3px solid var(--ion-color-warning);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+  }
+}
+
+.message-container {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 1rem;
+    line-height: 1.4;
+    margin: 0 auto;
+    max-width: 280px;
+  }
+}
+
+.status-container {
+  ion-chip {
+    --background: rgba(var(--ion-color-warning-rgb), 0.15);
+    font-weight: 500;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
