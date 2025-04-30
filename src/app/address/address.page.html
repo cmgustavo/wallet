@@ -17,10 +17,8 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-card *ngIf="walletService.wallet">
-    <ion-card-content>
-      <app-addresses-component [addresses]="walletService.wallet.addresses"></app-addresses-component>
-    </ion-card-content>
-  </ion-card>
+  <div *ngIf="walletService.wallet">
+    <app-addresses-component [addresses]="walletService.wallet.addresses"></app-addresses-component>
+  </div>
 
 </ion-content>

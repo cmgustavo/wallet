@@ -1,11 +1,9 @@
 <ion-list>
   <ion-list-header class="ion-padding-bottom">
     <ion-label>
-      <ion-text>
-        <h1 class="ion-text-capitalize">{{ tx?.type }}</h1>
-        <span *ngIf="tx?.confirmed" class="confirmed">Confirmed</span>
-        <span *ngIf="!tx?.confirmed" class="pending">Pending</span>
-      </ion-text>
+      <h1 class="ion-text-capitalize">{{ tx?.type }}</h1>
+      <span *ngIf="tx?.confirmed" class="confirmed">Confirmed</span>
+      <span *ngIf="!tx?.confirmed" class="pending">Pending</span>
     </ion-label>
   </ion-list-header>
   <ion-item>

@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule, Platform, ToastController} from '@ionic/angular';
+import {IonicModule, Platform} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
 import {QrCodeModule} from "ng-qrcode";
 import {Clipboard} from '@capacitor/clipboard';
 import {Share} from "@capacitor/share";
-import {Toast} from "@capacitor/toast";
+import {ToastService} from "../services/toast/toast.service";
 
 @Component({
   selector: 'app-receive',
@@ -21,7 +21,7 @@ export class ReceivePage implements OnInit {
   constructor(
     public walletService: WalletService,
     public platform: Platform,
-    public toastCtrl: ToastController) {
+    private toastService: ToastService) {
   }
 
   async ngOnInit() {
@@ -43,24 +43,15 @@ export class ReceivePage implements OnInit {
   }
 
   public copyAddress = async () => {
-    const address = this.walletService.getLastAddress();
+    const address = this.walletService.getLastAddress().address;
     if (address) {
-      console.log('Copied address: ', address.address);
       if (this.isDevice) {
-        await Clipboard.write({string: address.address});
-        await Toast.show({
-          text: 'Copied to clipboard!',
-          duration: 'short'
-        });
+        await Clipboard.write({string: address});
       } else {
-        await navigator.clipboard.writeText(address.address);
-        const toast = await this.toastCtrl.create({
-          message: 'Copied to clipboard!',
-          duration: 2500,
-          position: 'bottom'
-        });
-        await toast.present();
+        await navigator.clipboard.writeText(address);
       }
+      console.log('Copied address: ', address);
+      await this.toastService.presentToast('Copied to clipboard!');
     }
   }
 }

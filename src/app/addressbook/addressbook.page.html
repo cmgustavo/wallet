@@ -32,11 +32,15 @@
   <ng-template #ListContacts>
 
     <ion-list>
-      <ion-item *ngFor="let key of Object.keys(contacts)">
-        <ion-label class="ion-text-wrap" (click)="copyAddress(key)">
-          <h2>{{ contacts[key] }}</h2>
-          <p>{{ key }}</p>
+      <ion-item *ngFor="let key of Object.keys(contacts)" class="contact-item">
+        <ion-avatar slot="start">
+          <ion-icon name="person-circle" class="contact-avatar"></ion-icon>
+        </ion-avatar>
+        <ion-label class="ion-text-wrap">
+          <h2 class="contact-name">{{ contacts[key] }}</h2>
+          <p class="contact-address">{{ key }}</p>
         </ion-label>
+        <ion-icon name="copy-outline" slot="end" class="copy-icon" (click)="copyAddress(key)"></ion-icon>
       </ion-item>
     </ion-list>
 

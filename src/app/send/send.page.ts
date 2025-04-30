@@ -6,15 +6,14 @@ import {
   AlertController,
   IonicModule,
   Platform,
-  ToastController,
-  IonToggle
 } from '@ionic/angular';
-import {ProposeTransaction, ProposeTransactionObj, WalletService} from "../services/wallet/wallet.service";
+import {ProposeTransactionObj, WalletService} from "../services/wallet/wallet.service";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 import {ThemeService} from "../services/theme/theme.service";
 import {RateResponse, RateService} from "../services/rates/rates.service";
 import {wallet} from "ionicons/icons";
+import {ToastService} from "../services/toast/toast.service";
 
 @Component({
   selector: 'app-send',
@@ -43,7 +42,7 @@ export class SendPage implements OnInit {
     public alertController: AlertController,
     public addressbookService: AddressbookService,
     public themeService: ThemeService,
-    public toastController: ToastController,
+    private toastService: ToastService,
     public rateService: RateService) {
     this.to = '';
     this.amount = 0;
@@ -138,14 +137,6 @@ export class SendPage implements OnInit {
     await alert.present();
   }
 
-  async presentToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-    });
-    await toast.present();
-  }
-
   public async sendMax() {
     const actionSheet = await this.actionSheetController.create({
       header: 'Send maximum amount',
@@ -163,7 +154,7 @@ export class SendPage implements OnInit {
               this.showProgress = false;
               this.clearForm();
               this.proposal = await this.walletService.getProposals();
-              await this.presentToast('Transaction Proposal created');
+              await this.toastService.presentToast('Transaction Proposal created');
             }).catch(async (e) => {
               console.log('Transaction Proposal creation error', e);
               this.showProgress = false;
@@ -204,7 +195,7 @@ export class SendPage implements OnInit {
               this.showProgress = false;
               this.clearForm();
               this.proposal = await this.walletService.getProposals();
-              await this.presentToast('Transaction Proposal created');
+              await this.toastService.presentToast('Transaction Proposal created');
             } catch (e: any) {
               console.log('Transaction Proposal creation error', e);
               this.showProgress = false;
@@ -235,7 +226,7 @@ export class SendPage implements OnInit {
         console.log('Proposal removed', JSON.stringify(response));
         this.showProgress = false;
         this.proposal = undefined;
-        this.presentToast('Proposal removed successfully');
+        this.toastService.presentToast('Proposal removed successfully');
       }).catch((error) => {
         this.showProgress = false;
         console.error('Error removing proposal', error);
@@ -254,7 +245,7 @@ export class SendPage implements OnInit {
       this.showProgress = false;
       this.proposal = undefined;
       this.walletService.clearProposals();
-      this.presentToast('Proposal broadcasted successfully');
+      this.toastService.presentToast('Proposal broadcasted successfully');
     }).catch((error) => {
       this.showProgress = false;
       console.error('Error broadcasting proposal', error);

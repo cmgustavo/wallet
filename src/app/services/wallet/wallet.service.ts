@@ -161,7 +161,12 @@ export class WalletService {
         const publicKey = addressNode.publicKey;
         const address = this.getAddress(publicKey, IS_TESTNET);
         if (!address) throw new Error('Could not generate address');
-        const balance = await this.getAddressBalance(address);
+        let balance = 0;
+        try {
+          balance = await this.getAddressBalance(address);
+        } catch (error) {
+          console.error('No problem, continue:', error);
+        }
         newAddresses.push({
           address: address,
           balance: balance,
@@ -452,10 +457,9 @@ export class WalletService {
     try {
       const response = await fetch(url);
       const utxos = await response.json();
-      const balance = utxos.reduce((previousValue: number, currentValue: any) => {
+      return utxos.reduce((previousValue: number, currentValue: any) => {
         return previousValue + currentValue.value;
       }, 0);
-      return balance;
     } catch (error) {
       console.error('Error fetching address balance:', error);
       throw new Error('Error fetching address balance');

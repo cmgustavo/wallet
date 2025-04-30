@@ -3,13 +3,11 @@
 
   <ion-list>
     <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
-      <ion-icon *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>
-      <ion-icon *ngIf="tx.type === 'sent'" slot="start" color="danger" name="arrow-up-circle-outline"></ion-icon>
-      <ion-icon *ngIf="tx.type === 'moved'" slot="start" name="arrow-forward-circle-outline"></ion-icon>
+      <ion-icon size="large" *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>
+      <ion-icon size="large" *ngIf="tx.type === 'sent'" slot="start" color="danger" name="arrow-up-circle-outline"></ion-icon>
+      <ion-icon size="large" *ngIf="tx.type === 'moved'" slot="start" name="arrow-forward-circle-outline"></ion-icon>
       <ion-label>
-        <h4>
           {{ tx.amountStr }}
-        </h4>
       </ion-label>
       <ion-note slot="end">
         {{ tx.date.split(',')[0] }}<br>
@@ -23,7 +21,7 @@
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="primary">
-            <ion-button (click)="closeTransactionDetails()">Close</ion-button>
+            <ion-button class="custom-small-button" (click)="closeTransactionDetails()">Close</ion-button>
           </ion-buttons>
           <ion-title>Transaction Details</ion-title>
         </ion-toolbar>
@@ -35,7 +33,9 @@
   </ion-modal>
 </ng-template>
 <ng-template #NoTx>
-  <div class="ion-padding">
-    No transactions.
+  <div class="no-tx-container ion-padding">
+    <ion-icon name="wallet-outline" class="no-tx-icon"></ion-icon>
+    <div class="no-tx-text">No transactions yet!</div>
+    <div class="no-tx-subtitle">Your future transactions will appear here</div>
   </div>
 </ng-template>

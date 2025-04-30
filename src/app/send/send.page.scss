@@ -20,8 +20,8 @@
   margin-bottom: 2rem;
 
   .circle-background {
-    width: 200px;
-    height: 200px;
+    width: 170px;
+    height: 170px;
     background: rgba(var(--ion-color-warning-rgb), 0.1);
     border-radius: 50%;
     position: absolute;
@@ -76,7 +76,6 @@
   h2 {
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--ion-color-dark);
     margin-bottom: 0.5rem;
   }
 
@@ -112,5 +111,55 @@
   100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+  }
+}
+
+.proposal-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.proposal-list {
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+
+    ion-note {
+
+      &.amount-note,
+      &.fee-note {
+        strong {
+          color: var(--ion-color-dark);
+        }
+      }
+
+      &.txid-note {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+.raw-textarea {
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.action-buttons {
+  .send-button {
+    margin-bottom: 8px;
+  }
+
+  .cancel-button {
   }
 }

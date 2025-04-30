@@ -1,11 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule, Platform, ToastController} from '@ionic/angular';
+import {IonicModule, Platform} from '@ionic/angular';
 import {Network, WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
-import {Toast} from "@capacitor/toast";
 import {IS_TESTNET} from "../constants";
+import {ToastService} from "../services/toast/toast.service";
 
 @Component({
   selector: 'app-import',
@@ -23,18 +23,10 @@ export class ImportPage implements OnInit {
 
   constructor(
     private router: Router,
-    private toastCtrl: ToastController,
+    private toastService: ToastService,
     public walletService: WalletService,
     public platform: Platform,
   ) {
-  }
-
-  async presentToast(message: string) {
-    const toast = await this.toastCtrl.create({
-      message: message,
-      duration: 2000,
-    });
-    await toast.present();
   }
 
   async ngOnInit() {
@@ -50,25 +42,16 @@ export class ImportPage implements OnInit {
     // Import wallet
     this.walletService.importWallet(this.mnemonic, this.name).then(async (wallet) => {
       console.log('Wallet imported', wallet);
+      console.log('Updating wallet balance');
       await this.walletService.updateTotalBalance();
+      console.log('Updating wallet transactions');
       await this.walletService.updateTransactions();
       this.showProgress = false;
-      await this.presentToast('Wallet imported successfully');
+      await this.toastService.presentToast('Wallet imported successfully');
       this.router.navigate(['/tabs/home']);
     }).catch(async error => {
       console.log('Error importing wallet', error);
-      if (this.isDevice) {
-        await Toast.show({
-          text: 'Error importing wallet',
-          duration: 'short'
-        });
-      } else {
-        this.toastCtrl.create({
-          message: 'Error importing wallet',
-          duration: 2500,
-          position: 'bottom'
-        }).then(toast => toast.present());
-      }
+      await this.toastService.presentToast('Error importing wallet');
     });
 
   }

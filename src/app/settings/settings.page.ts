@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ActionSheetController, IonicModule, Platform, ToastController} from '@ionic/angular';
+import {ActionSheetController, IonicModule, Platform} from '@ionic/angular';
 import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component';
 import {ThemeService} from '../services/theme/theme.service';
 import {WalletService} from '../services/wallet/wallet.service';
@@ -7,10 +7,10 @@ import {ConfigService} from "../services/config/config.service";
 import {AddressbookService} from "../services/addressbook/addressbook.service";
 import {Router} from "@angular/router";
 import {formatCurrency, NgIf} from "@angular/common";
-import {Toast} from "@capacitor/toast";
 import {IS_TESTNET} from "../constants";
 import {RateService} from "../services/rates/rates.service";
 import {RateResponse} from "../services/rates/rates.service";
+import {ToastService} from "../services/toast/toast.service";
 
 @Component({
   selector: 'app-settings',
@@ -32,7 +32,7 @@ export class SettingsPage implements OnInit {
   constructor(
     private themeService: ThemeService,
     private router: Router,
-    private toastCtrl: ToastController,
+    private toastService: ToastService,
     public actionSheetController: ActionSheetController,
     public walletService: WalletService,
     public platform: Platform,
@@ -103,19 +103,7 @@ export class SettingsPage implements OnInit {
           handler: async () => {
             await this.addressbookService.clearAddressBook();
             console.log('Address book deleted');
-            if (this.isDevice) {
-              await Toast.show({
-                text: 'Address book deleted successfully',
-                duration: 'long'
-              });
-            } else {
-              const toast = await this.toastCtrl.create({
-                message: 'Address book deleted successfully',
-                duration: 2500,
-                position: 'bottom'
-              });
-              await toast.present();
-            }
+            await this.toastService.presentToast('Address book deleted successfully');
           },
         },
         {
@@ -143,19 +131,7 @@ export class SettingsPage implements OnInit {
           handler: async () => {
             await this.walletService.deleteWallet();
             console.log('Wallet deleted');
-            if (this.isDevice) {
-              await Toast.show({
-                text: 'Wallet deleted successfully',
-                duration: 'long'
-              });
-            } else {
-              const toast = await this.toastCtrl.create({
-                message: 'Wallet deleted successfully',
-                duration: 2500,
-                position: 'bottom'
-              });
-              await toast.present();
-            }
+            await this.toastService.presentToast('Wallet deleted successfully');
           },
         },
         {
@@ -183,19 +159,7 @@ export class SettingsPage implements OnInit {
           handler: async () => {
             await this.walletService.clearTransactions();
             console.log('Transactions deleted');
-            if (this.isDevice) {
-              await Toast.show({
-                text: 'Transactions deleted successfully',
-                duration: 'long'
-              });
-            } else {
-              const toast = await this.toastCtrl.create({
-                message: 'Transactions deleted successfully',
-                duration: 2500,
-                position: 'bottom'
-              });
-              await toast.present();
-            }
+            await this.toastService.presentToast('Transactions deleted successfully');
           },
         },
         {
@@ -223,19 +187,7 @@ export class SettingsPage implements OnInit {
           handler: async () => {
             await this.walletService.clearProposals();
             console.log('Proposals deleted');
-            if (this.isDevice) {
-              await Toast.show({
-                text: 'Proposals deleted successfully',
-                duration: 'long'
-              });
-            } else {
-              const toast = await this.toastCtrl.create({
-                message: 'Proposals deleted successfully',
-                duration: 2500,
-                position: 'bottom'
-              });
-              await toast.present();
-            }
+            await this.toastService.presentToast('Proposals deleted successfully');
           },
         },
         {

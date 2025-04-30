@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule, Platform, ToastController} from '@ionic/angular';
+import {IonicModule, Platform} from '@ionic/angular';
 import {WalletService} from "../services/wallet/wallet.service";
-import {Router} from "@angular/router";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
-import { Clipboard } from '@capacitor/clipboard';
+import {Clipboard} from '@capacitor/clipboard';
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
+import {ToastService} from "../services/toast/toast.service";
 
 @Component({
   selector: 'app-addressbook',
@@ -25,18 +25,20 @@ export class AddressbookPage implements OnInit {
   public contacts: AddressBook = {};
 
   constructor(
-    private router: Router,
-    private toastCtrl: ToastController,
+    private toastService: ToastService,
     public walletService: WalletService,
     public platform: Platform,
     public addressbookService: AddressbookService,
   ) {}
 
   async copyAddress(address: string) {
-    await Clipboard.write({
-      string: address
-    });
-    await this.presentToast('Address copied to clipboard');
+    if (this.isDevice) {
+      await Clipboard.write({string: address});
+    } else {
+      await navigator.clipboard.writeText(address);
+    }
+    console.log('Copied address: ', address);
+    await this.toastService.presentToast('Address copied to clipboard');
   }
 
  openModalAddContact() {
@@ -47,14 +49,6 @@ export class AddressbookPage implements OnInit {
     this.isModalAddContact = false;
  }
 
-  async presentToast(message: string) {
-    const toast = await this.toastCtrl.create({
-      message: message,
-      duration: 2000,
-    });
-    await toast.present();
-  }
-
   async ngOnInit() {
     this.addressbookService.getAddressBook().then(addressBook => {
       this.contacts = addressBook || {};
@@ -63,20 +57,20 @@ export class AddressbookPage implements OnInit {
 
   async addContact() {
     if (!this.name) {
-      await this.presentToast('Name is required');
+      await this.toastService.presentToast('Name is required');
       return;
     }
     if (!this.address) {
-      await this.presentToast('Address is required');
+      await this.toastService.presentToast('Address is required');
       return;
     }
     if (!this.walletService.checkValidBitcoinAddress(this.address)) {
-      await this.presentToast('Invalid address');
+      await this.toastService.presentToast('Invalid address');
       return;
     }
     console.log('Adding contact', this.name, this.address);
     await this.addressbookService.addAddressBookEntry(this.address, this.name);
-    await this.presentToast('Contact added');
+    await this.toastService.presentToast('Contact added');
     this.contacts = await this.addressbookService.getAddressBook() || {};
     this.closeModal();
   }
@@ -95,12 +89,12 @@ export class AddressbookPage implements OnInit {
 
   async removeContact(address: string) {
     await this.addressbookService.removeAddressBookEntry(address);
-    await this.presentToast('Contact removed');
+    await this.toastService.presentToast('Contact removed');
   }
 
   async clearAddressBook() {
     await this.addressbookService.clearAddressBook();
-    await this.presentToast('Address book cleared');
+    await this.toastService.presentToast('Address book cleared');
     this.contacts = {};
   }
 

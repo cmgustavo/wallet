@@ -4,3 +4,43 @@
   white-space: nowrap;
   width: 80%;
 }
+
+.address-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.address-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.address-text {
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-all;
+  color: var(--ion-color-medium);
+  margin: 8px 0;
+}
+
+.balance-note {
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .unit {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+}
+
+ion-badge {
+  font-size: 12px;
+  font-weight: normal;
+}

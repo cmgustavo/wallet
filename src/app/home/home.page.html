@@ -21,17 +21,15 @@
         {{ walletService.wallet.network }}
       </ion-card-subtitle>
       <ion-card-title>
-        <ion-text>
-          {{ walletService.wallet.name }}
-        </ion-text>
+        {{ walletService.wallet.name }}
       </ion-card-title>
     </ion-card-header>
 
-    <ion-card-content>
-      <ion-text color="primary">
+    <ion-card-content class="ion-margin-vertical">
+      <ion-text>
         <h1>{{ isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr }}</h1>
       </ion-text>
-      <ion-text *ngIf="fiatRate && walletService.wallet.balance">
+      <ion-text color="primary" *ngIf="fiatRate && walletService.wallet.balance">
         <h2 class="fiat">{{ getFiatRate(walletService.wallet.balance) }}</h2>
       </ion-text>
     </ion-card-content>
@@ -40,7 +38,7 @@
   <div *ngIf="walletService.wallet">
     <div class="ion-margin-horizontal">
       <ion-text>
-        <h6>Transactions</h6>
+        <h4>Transactions</h4>
       </ion-text>
     </div>
     <app-transactions-component [network]="walletService.wallet.network"

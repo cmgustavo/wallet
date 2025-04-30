@@ -1,21 +1,30 @@
 <div *ngIf="addresses?.length; then ListAddresses else NoAddresses"></div>
 <ng-template #ListAddresses>
-  <ion-list>
-    <ion-item *ngFor="let address of addresses">
-      <ion-label>
-        [{{address.index}}] <br>
-        {{address.change !== 0 ? '(Change)' : null}} <br>
-        <span class="truncate">{{address.address}}</span>
+  <ion-list class="ion-padding">
+    <ion-item *ngFor="let address of addresses" class="address-item">
+      <ion-label class="ion-text-wrap">
+        <div class="address-header">
+          <ion-text color="primary">[{{address.index}}]</ion-text>
+          <ion-badge color="medium" *ngIf="address.change !== 0">Change</ion-badge>
+        </div>
+        <p class="address-text ion-margin-top">{{address.address}}</p>
       </ion-label>
-      <ion-note slot="end">{{address.balance}} sat</ion-note>
+      <ion-note slot="end" color="success" class="balance-note">
+        {{address.balance}} <span class="unit">sat</span>
+      </ion-note>
     </ion-item>
   </ion-list>
 </ng-template>
+
 <ng-template #NoAddresses>
-  <div class="ion-padding">
-    No Addresses.
+  <div class="ion-padding ion-text-center">
+    <ion-text color="medium">
+      <h5>No Addresses</h5>
+      <p>No bitcoin addresses available.</p>
+    </ion-text>
   </div>
 </ng-template>
+
 
 
 
