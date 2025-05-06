@@ -48,6 +48,7 @@ export interface ProposeTransaction {
   amountStr: string;
   date: string;
   rawTx: string;
+  recipients?: TxRecipient[];
 }
 
 export type ProposeTransactionObj = ProposeTransaction | undefined;
@@ -61,6 +62,11 @@ export interface Wallet {
   addresses: Address[] | undefined;
   transactions: Transaction[] | undefined;
   proposal?: ProposeTransaction | undefined;
+}
+
+export interface TxRecipient {
+  address: string;
+  amount: number;
 }
 
 @Injectable({
@@ -217,7 +223,7 @@ export class WalletService {
     });
   }
 
-  private saveProposal = async (id: string, to: string, amount: number, amountStr: string, fee: number, feeStr: string, message: string, date: string, rawTx: string) => {
+  private saveProposal = async (id: string, to: string, amount: number, amountStr: string, fee: number, feeStr: string, message: string, date: string, rawTx: string, recipients?: TxRecipient[]) => {
     if (!this.wallet) throw new Error('Wallet not initialized');
     this.wallet.proposal = {
       id,
@@ -228,7 +234,8 @@ export class WalletService {
       date,
       rawTx,
       feeStr,
-      amountStr
+      amountStr,
+      recipients,
     };
     await this.saveWallet();
   };
@@ -689,15 +696,26 @@ export class WalletService {
     }
   }
 
-  public createTx = async (to: string, amount: number, message: string): Promise<any> => {
-    if (!to || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
+  public createTx = async (recipients: TxRecipient[], message: string): Promise<any> => {
+    if (!recipients.length || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
+
+    const isMultipleRecipients = recipients.length > 1;
+
+    // Validate all recipient addresses
+    for (const recipient of recipients) {
+      if (!this.checkValidBitcoinAddress(recipient.address)) {
+        throw new Error(`Invalid Bitcoin address: ${recipient.address}`);
+      }
+    }
 
     const utxos = await this.getUTXOs();
-    const amountSat = this.btcToSatoshis(amount);
-    console.log('Amount:', amount, 'BTC');
-    console.log('Amount:', amountSat, 'Satoshis');
+    const totalAmountSat = recipients.reduce((sum, recipient) =>
+      sum + this.btcToSatoshis(recipient.amount), 0);
+
+    console.log('Total Amount:', totalAmountSat, 'Satoshis');
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
     const feeRate = await this.currentFeeRate();
+
 
     const inputSize = 68; // Assuming P2WPKH
     const outputSize = 31;
@@ -709,10 +727,10 @@ export class WalletService {
     console.log('Fee Rate:', feeRate, 'satoshis per byte');
     console.log('Estimated Fee:', feeSat, 'satoshis');
 
-    const changeValue = balanceSat - amountSat - feeSat;
+    const changeValue = balanceSat - totalAmountSat - feeSat;
     if (changeValue < 0) throw new Error('Insufficient funds for fee');
 
-    if (balanceSat < amountSat + feeSat) throw new Error('Insufficient funds including fee');
+    if (balanceSat < totalAmountSat + feeSat) throw new Error('Insufficient funds including fee');
 
     console.log('Transaction Fee:', this.satoshisToBtc(feeSat), 'BTC');
     const network = this.wallet.network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
@@ -739,18 +757,26 @@ export class WalletService {
     });
 
     try {
-      psbt.addOutput({
-        address: to,
-        value: amountSat,
-      });
+      // Add outputs for all recipients
+      for (const recipient of recipients) {
+        psbt.addOutput({
+          address: recipient.address,
+          value: this.btcToSatoshis(recipient.amount),
+        });
+      }
+
+      // Add change output if needed
       if (changeValue > 546) { // Prevent dust output
-        psbt.addOutput({address: await this.getNewChangeAddress(), value: changeValue});
+        psbt.addOutput({
+          address: await this.getNewChangeAddress(),
+          value: changeValue
+        });
       } else {
         console.log('Change is dust, adding to fee:', changeValue);
       }
     } catch (e) {
-      console.log('Error adding output', JSON.stringify(e));
-      throw new Error('Adding output');
+      console.log('Error adding outputs', JSON.stringify(e));
+      throw new Error('Adding outputs');
     }
 
     utxos.forEach((utxo: any, index: number) => {
@@ -786,14 +812,15 @@ export class WalletService {
       const tx = psbt.extractTransaction();
       await this.saveProposal(
         tx.getId(),
-        to,
-        amountSat,
-        `${amount} BTC`,
+        isMultipleRecipients ? 'Multiple Recipients' : recipients[0].address,
+        totalAmountSat,
+        `${this.satoshisToBtc(totalAmountSat)} BTC`,
         feeSat,
         `${this.satoshisToBtc(feeSat)} BTC`,
         message,
         new Date().toLocaleString(),
-        tx.toHex()
+        tx.toHex(),
+        recipients,
       );
       return {
         tx: tx.toHex(),

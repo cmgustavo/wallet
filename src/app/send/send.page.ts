@@ -7,7 +7,7 @@ import {
   IonicModule,
   Platform,
 } from '@ionic/angular';
-import {ProposeTransactionObj, WalletService} from "../services/wallet/wallet.service";
+import {ProposeTransactionObj, WalletService, TxRecipient} from "../services/wallet/wallet.service";
 import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
 import {ThemeService} from "../services/theme/theme.service";
@@ -31,6 +31,7 @@ export class SendPage implements OnInit {
   public contacts: AddressBook = {};
   public proposal: ProposeTransactionObj;
   public fiatRate: RateResponse = undefined;
+  public recipients: TxRecipient[] = [];  // Initialize with one empty recipient
 
   private isDevice = this.platform.is('capacitor');
   private isDark = this.themeService.isDark;
@@ -124,6 +125,7 @@ export class SendPage implements OnInit {
     this.to = '';
     this.amount = 0;
     this.message = '';
+    this.recipients = [];
     this.useTotalAmount = false;
   }
 
@@ -176,9 +178,24 @@ export class SendPage implements OnInit {
     await actionSheet.present();
   }
 
+  public addRecipient() {
+    this.recipients.push({address: this.to, amount: this.amount});
+    this.to = '';
+    this.amount = 0;
+  }
+
+  public removeRecipient(index: number) {
+    this.recipients.splice(index, 1);
+  }
+
   public async createTransaction() {
+    if (this.recipients.length === 0) {
+      this.recipients.push({address: this.to, amount: this.amount});
+    }
+    const totalAmount = this.recipients.reduce((sum, recipient) => sum + recipient.amount, 0);
+    const header = this.recipients.length > 1 ? 'Confirm you are creating transaction of ' + totalAmount + 'BTC to multiple recipients' : 'Confirm you are creating transaction of ' + this.amount + 'BTC';
     const actionSheet = await this.actionSheetController.create({
-      header: 'Confirm you are creating transaction of ' + this.amount + 'BTC to ' + this.to,
+      header: header,
       cssClass: this.isDark ? 'dark-action-sheet' : '',
       buttons: [
         {
@@ -188,9 +205,8 @@ export class SendPage implements OnInit {
           handler: async () => {
             this.showProgress = true;
             await actionSheet.dismiss();
-            // TODO: this.walletService.send(this.to, this.amount, this.message);
             try {
-              const tx = await this.walletService.createTx(this.to, this.amount, this.message) || {};
+              const tx = await this.walletService.createTx(this.recipients, this.message) || {};
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
