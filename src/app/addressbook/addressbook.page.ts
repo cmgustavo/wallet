@@ -29,7 +29,8 @@ export class AddressbookPage implements OnInit {
     public walletService: WalletService,
     public platform: Platform,
     public addressbookService: AddressbookService,
-  ) {}
+  ) {
+  }
 
   async copyAddress(address: string) {
     if (this.isDevice) {
@@ -41,13 +42,15 @@ export class AddressbookPage implements OnInit {
     await this.toastService.presentToast('Address copied to clipboard');
   }
 
- openModalAddContact() {
+  openModalAddContact() {
     this.isModalAddContact = true;
- }
+  }
 
- closeModal() {
+  closeModal() {
+    this.name = '';
+    this.address = '';
     this.isModalAddContact = false;
- }
+  }
 
   async ngOnInit() {
     this.addressbookService.getAddressBook().then(addressBook => {
@@ -89,6 +92,7 @@ export class AddressbookPage implements OnInit {
 
   async removeContact(address: string) {
     await this.addressbookService.removeAddressBookEntry(address);
+    this.contacts = await this.addressbookService.getAddressBook() || {};
     await this.toastService.presentToast('Contact removed');
   }
 

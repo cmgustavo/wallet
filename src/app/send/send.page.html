@@ -21,22 +21,22 @@
 
       <div *ngIf="proposal.recipients; then ShowMultipleRecipients else SingleTransaction"></div>
       <ng-template #SingleTransaction>
-      <ion-item lines="full">
-        <ion-label color="medium">Amount</ion-label>
+        <ion-item lines="full">
+          <ion-label color="medium">Amount</ion-label>
 
-        <ion-note slot="end" class="amount-note">
-          <strong>{{ proposal.amountStr }}</strong>
-          <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.amount) }}</div>
-        </ion-note>
-      </ion-item>
+          <ion-note slot="end" class="amount-note">
+            <strong>{{ proposal.amountStr }}</strong>
+            <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.amount) }}</div>
+          </ion-note>
+        </ion-item>
 
-      <ion-item lines="full">
-        <ion-label color="medium">Fee</ion-label>
-        <ion-note slot="end" class="fee-note">
-          <strong>{{ proposal.feeStr }}</strong>
-          <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.fee) }}</div>
-        </ion-note>
-      </ion-item>
+        <ion-item lines="full">
+          <ion-label color="medium">Fee</ion-label>
+          <ion-note slot="end" class="fee-note">
+            <strong>{{ proposal.feeStr }}</strong>
+            <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.fee) }}</div>
+          </ion-note>
+        </ion-item>
       </ng-template>
 
       <ng-template #ShowMultipleRecipients>
@@ -112,69 +112,67 @@
 
   <div *ngIf="walletService.wallet?.addresses; then ShowSendForm else NoSendForm"></div>
   <ng-template #ShowSendForm>
-    <ion-card *ngIf="!proposal">
-      <ion-card-content>
-        <ion-item>
-          <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>
-          <ion-button class="action-small-button" slot="end" (click)="scanQRCode()">
-            <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-          <ion-button class="action-small-button" slot="end" (click)="openModalContacts()">
-            <ion-icon name="person-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-item>
-        <ion-item>
-          <ion-toggle [disabled]="showProgress" [(ngModel)]="useTotalAmount">
-            Use Total Amount
-          </ion-toggle>
-        </ion-item>
-        <ion-item>
-          <ion-input
-            type="number" [disabled]="showProgress || useTotalAmount"
-            label="Amount" [(ngModel)]="amount"
-            [helperText]="getFiatRateBtc(amount)"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
-        </ion-item>
-        <ion-button class="ion-margin-vertical" fill="clear"
-                    [disabled]="(!to || !amount || useTotalAmount || showProgress)"
-                    (click)="addRecipient()">
-          Add Recipient
-          <ion-icon name="add-circle-outline" slot="end"></ion-icon>
+    <ion-list *ngIf="!proposal">
+      <ion-item>
+        <ion-input label="To" [disabled]="showProgress" [(ngModel)]="to"></ion-input>
+        <ion-button class="action-small-button" slot="end" (click)="scanQRCode()">
+          <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
         </ion-button>
-
-        <div *ngIf="recipients.length > 0">
-          <ion-item-divider>
-            <h2>Recipients</h2>
-          </ion-item-divider>
-          <ion-list>
-            <ion-item *ngFor="let recipient of recipients; let index = index">
-              <ion-avatar slot="start">
-                <ion-icon name="person-circle" class="contact-avatar"></ion-icon>
-              </ion-avatar>
-              <ion-label>
-                <ion-text color="medium">
-                  {{ recipient.address }}
-                  <div>
-                    <strong>{{ recipient.amount }} BTC </strong>
-                    <span>({{ getFiatRateBtc(recipient.amount) }})</span>
-                  </div>
-                </ion-text>
-              </ion-label>
-              <ion-button fill="clear" color="danger" (click)="removeRecipient(index)">
-                <ion-icon name="trash-outline" class="icon-remove-recipient"></ion-icon>
-              </ion-button>
-            </ion-item>
-          </ion-list>
-        </div>
-
-        <ion-button class="ion-margin-vertical" expand="block"
-                    [disabled]="((!recipients.length && !useTotalAmount) || (!to && useTotalAmount) || showProgress)"
-                    (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
+        <ion-button class="action-small-button" slot="end" (click)="openModalContacts()">
+          <ion-icon name="person-outline" slot="icon-only"></ion-icon>
         </ion-button>
-      </ion-card-content>
-    </ion-card>
+      </ion-item>
+      <ion-item>
+        <ion-toggle [disabled]="showProgress" [(ngModel)]="useTotalAmount">
+          Use Total Amount
+        </ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-input
+          type="number" [disabled]="showProgress || useTotalAmount"
+          label="Amount" [(ngModel)]="amount"
+          [helperText]="getFiatRateBtc(amount)"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
+      </ion-item>
+      <ion-button class="ion-margin-vertical" fill="clear"
+                  [disabled]="(!to || !amount || useTotalAmount || showProgress)"
+                  (click)="addRecipient()">
+        Add Recipient
+        <ion-icon name="add-circle-outline" slot="end"></ion-icon>
+      </ion-button>
+
+      <div *ngIf="recipients.length > 0">
+        <ion-item-divider>
+          <h2>Recipients</h2>
+        </ion-item-divider>
+        <ion-list>
+          <ion-item *ngFor="let recipient of recipients; let index = index">
+            <ion-avatar slot="start">
+              <ion-icon name="person-circle" class="contact-avatar"></ion-icon>
+            </ion-avatar>
+            <ion-label>
+              <ion-text color="medium">
+                {{ recipient.address }}
+                <div>
+                  <strong>{{ recipient.amount }} BTC </strong>
+                  <span>({{ getFiatRateBtc(recipient.amount) }})</span>
+                </div>
+              </ion-text>
+            </ion-label>
+            <ion-button fill="clear" color="danger" (click)="removeRecipient(index)">
+              <ion-icon name="trash-outline" class="icon-remove-recipient"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <ion-button class="ion-margin" expand="block"
+                  [disabled]="((!recipients.length && !useTotalAmount) || (!to && useTotalAmount) || showProgress)"
+                  (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
+      </ion-button>
+    </ion-list>
   </ng-template>
   <ng-template #NoSendForm>
     <div class="empty-state-container">
