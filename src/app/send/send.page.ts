@@ -129,6 +129,19 @@ export class SendPage implements OnInit {
     this.useTotalAmount = false;
   }
 
+  public setSendMax(event: any) {
+    this.useTotalAmount = event.detail.checked;
+    if (!this.to) {
+      this.toastService.presentToast('Please enter a valid address');
+      return;
+    }
+    this.amount = 0;
+    this.recipients = [];
+    if (this.useTotalAmount) {
+      this.recipients.push({address: this.to, amount: 0});
+    }
+  }
+
   async presentAlert(error: string) {
     const alert = await this.alertController.create({
       header: 'Could not create transaction',
@@ -189,11 +202,10 @@ export class SendPage implements OnInit {
   }
 
   public async createTransaction() {
-    if (this.recipients.length === 0) {
-      this.recipients.push({address: this.to, amount: this.amount});
-    }
-    const totalAmount = this.recipients.reduce((sum, recipient) => sum + recipient.amount, 0);
-    const header = this.recipients.length > 1 ? 'Confirm you are creating transaction of ' + totalAmount + 'BTC to multiple recipients' : 'Confirm you are creating transaction of ' + this.amount + 'BTC';
+    const totalAmount = this.recipients.reduce((sum, recipient) => sum + recipient.amount, 0).toFixed(8);
+    const header = this.recipients.length > 1 ?
+      'Confirm you are creating transaction of ' + totalAmount + 'BTC to multiple recipients' :
+      'Confirm you are creating transaction of ' + this.recipients[0].amount + ' BTC';
     const actionSheet = await this.actionSheetController.create({
       header: header,
       cssClass: this.isDark ? 'dark-action-sheet' : '',

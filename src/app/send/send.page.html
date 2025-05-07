@@ -22,6 +22,12 @@
       <div *ngIf="proposal.recipients; then ShowMultipleRecipients else SingleTransaction"></div>
       <ng-template #SingleTransaction>
         <ion-item lines="full">
+          <ion-label color="medium">To</ion-label>
+          <ion-note slot="end" class="ion-text-wrap">
+            {{ proposal.to }}
+          </ion-note>
+        </ion-item>
+        <ion-item lines="full">
           <ion-label color="medium">Amount</ion-label>
 
           <ion-note slot="end" class="amount-note">
@@ -33,7 +39,7 @@
         <ion-item lines="full">
           <ion-label color="medium">Fee</ion-label>
           <ion-note slot="end" class="fee-note">
-            <strong>{{ proposal.feeStr }}</strong>
+            {{ proposal.feeStr }}
             <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.fee) }}</div>
           </ion-note>
         </ion-item>
@@ -48,7 +54,7 @@
             {{ recipient.address }}
           </ion-label>
           <ion-note slot="end" class="recipient-note">
-            <strong>{{ recipient.amount }} BTC</strong>
+            {{ recipient.amount }} BTC
             <div class="fiat ion-text-end ion-text-caption">{{ getFiatRateBtc(recipient.amount) }}</div>
           </ion-note>
         </ion-item>
@@ -63,7 +69,7 @@
         <ion-item lines="full">
           <ion-label color="medium">Fee</ion-label>
           <ion-note slot="end" class="fee-note">
-            <strong>{{ proposal.feeStr }}</strong>
+            {{ proposal.feeStr }}
             <div class="fiat ion-text-end ion-text-caption">{{ getFiatRate(proposal.fee) }}</div>
           </ion-note>
         </ion-item>
@@ -100,12 +106,12 @@
       <ion-button class="send-button" expand="block" [disabled]="showProgress"
                   (click)="broadcastProposal(proposal.rawTx)">
         <ion-icon name="send-outline" slot="start"></ion-icon>
-        Send
+        Broadcast
       </ion-button>
 
       <ion-button class="cancel-button" fill="clear" expand="block" color="danger" (click)="remove()">
         <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-        Cancel
+        Remove
       </ion-button>
     </div>
   </div>
@@ -123,13 +129,13 @@
         </ion-button>
       </ion-item>
       <ion-item>
-        <ion-toggle [disabled]="showProgress" [(ngModel)]="useTotalAmount">
+        <ion-toggle [disabled]="showProgress || !to || (!useTotalAmount && recipients.length > 0)" [checked]="useTotalAmount" (ionChange)="setSendMax($event)">
           Use Total Amount
         </ion-toggle>
       </ion-item>
       <ion-item>
         <ion-input
-          type="number" [disabled]="showProgress || useTotalAmount"
+          type="number" [disabled]="showProgress || !to || useTotalAmount"
           label="Amount" [(ngModel)]="amount"
           [helperText]="getFiatRateBtc(amount)"></ion-input>
       </ion-item>
@@ -145,7 +151,7 @@
 
       <div *ngIf="recipients.length > 0">
         <ion-item-divider>
-          <h2>Recipients</h2>
+          <h3>Recipients</h3>
         </ion-item-divider>
         <ion-list>
           <ion-item *ngFor="let recipient of recipients; let index = index">
@@ -155,13 +161,16 @@
             <ion-label>
               <ion-text color="medium">
                 {{ recipient.address }}
-                <div>
+                <div *ngIf="!useTotalAmount">
                   <strong>{{ recipient.amount }} BTC </strong>
                   <span>({{ getFiatRateBtc(recipient.amount) }})</span>
                 </div>
+                <div *ngIf="useTotalAmount">
+                  <strong>Sending Max</strong>
+                </div>
               </ion-text>
             </ion-label>
-            <ion-button fill="clear" color="danger" (click)="removeRecipient(index)">
+            <ion-button *ngIf="!useTotalAmount" fill="clear" color="danger" (click)="removeRecipient(index)">
               <ion-icon name="trash-outline" class="icon-remove-recipient"></ion-icon>
             </ion-button>
           </ion-item>
@@ -169,7 +178,7 @@
       </div>
 
       <ion-button class="ion-margin" expand="block"
-                  [disabled]="((!recipients.length && !useTotalAmount) || (!to && useTotalAmount) || showProgress)"
+                  [disabled]="(showProgress || recipients.length === 0)"
                   (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
       </ion-button>
     </ion-list>
