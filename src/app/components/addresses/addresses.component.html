@@ -1,15 +1,18 @@
 <div *ngIf="addresses?.length; then ListAddresses else NoAddresses"></div>
 <ng-template #ListAddresses>
-  <ion-list class="ion-padding">
+  <ion-list>
     <ion-item *ngFor="let address of addresses" class="address-item">
       <ion-label class="ion-text-wrap">
         <div class="address-header">
-          <ion-text color="primary">[{{address.index}}]</ion-text>
-          <ion-badge color="medium" *ngIf="address.change !== 0">Change</ion-badge>
+          <ion-text color="primary">Address [{{address.index}}]</ion-text>
+          <ion-badge color="secondary" *ngIf="address.change !== 0">Change</ion-badge>
         </div>
-        <p class="address-text ion-margin-top">{{address.address}}</p>
+        <p class="address-text ion-margin-top" (click)="copyAddress(address.address)">
+          {{address.address}}
+          <ion-icon name="copy-outline"></ion-icon>
+        </p>
       </ion-label>
-      <ion-note slot="end" color="success" class="balance-note">
+      <ion-note slot="end" class="balance-note">
         {{address.balance}} <span class="unit">sat</span>
       </ion-note>
     </ion-item>
