@@ -3,13 +3,13 @@
 
   <ion-list>
     <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
-      <ion-icon size="large" *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>
-      <ion-icon size="large" *ngIf="tx.type === 'sent'" slot="start" color="danger" name="arrow-up-circle-outline"></ion-icon>
-      <ion-icon size="large" *ngIf="tx.type === 'moved'" slot="start" name="arrow-forward-circle-outline"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'sent'" color="danger" slot="start" name="arrow-up-circle-outline"></ion-icon>
+      <ion-icon *ngIf="tx.type === 'moved'" color="warning" slot="start" name="arrow-forward-circle-outline"></ion-icon>
       <ion-label>
           {{ tx.amountStr }}
       </ion-label>
-      <ion-note slot="end">
+      <ion-note slot="end" class="ion-text-end">
         {{ tx.date.split(',')[0] }}<br>
         {{ tx.date.split(',')[1] }}
       </ion-note>
