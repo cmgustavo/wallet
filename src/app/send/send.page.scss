@@ -55,18 +55,6 @@
       background: var(--ion-background-color);
       border-radius: 50%;
     }
-
-    .pulse-ring {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 45px;
-      height: 45px;
-      border: 3px solid var(--ion-color-warning);
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
   }
 }
 

@@ -38,19 +38,6 @@
       color: var(--ion-color-primary);
     }
   }
-
-  .arrow-container {
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation: bounce 2s infinite;
-
-    .arrow-icon {
-      font-size: 2rem;
-      color: var(--ion-color-success);
-    }
-  }
 }
 
 .message-container {

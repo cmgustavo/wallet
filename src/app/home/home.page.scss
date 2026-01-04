@@ -29,16 +29,6 @@
     color: var(--ion-color-primary);
     opacity: 0.9;
   }
-
-  .cash-icon {
-    position: absolute;
-    font-size: 3rem;
-    color: var(--ion-color-success);
-    bottom: -0.5rem;
-    right: -0.5rem;
-    opacity: 0.8;
-    animation: circle-rotate 2s linear infinite;
-  }
 }
 
 @keyframes circle-rotate {
