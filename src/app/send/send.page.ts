@@ -7,13 +7,23 @@ import {
   IonicModule,
   Platform,
 } from '@ionic/angular';
-import {ProposeTransactionObj, WalletService, TxRecipient} from "../services/wallet/wallet.service";
-import {AddressBook, AddressbookService} from "../services/addressbook/addressbook.service";
-import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from "@capacitor/barcode-scanner";
-import {ThemeService} from "../services/theme/theme.service";
-import {RateResponse, RateService} from "../services/rates/rates.service";
-import {wallet} from "ionicons/icons";
-import {ToastService} from "../services/toast/toast.service";
+import {
+  ProposeTransactionObj,
+  WalletService,
+  TxRecipient,
+} from '../services/wallet/wallet.service';
+import {
+  AddressBook,
+  AddressbookService,
+} from '../services/addressbook/addressbook.service';
+import {
+  CapacitorBarcodeScanner,
+  CapacitorBarcodeScannerTypeHintALLOption,
+} from '@capacitor/barcode-scanner';
+import {ThemeService} from '../services/theme/theme.service';
+import {RateResponse, RateService} from '../services/rates/rates.service';
+import {wallet} from 'ionicons/icons';
+import {ToastService} from '../services/toast/toast.service';
 
 @Component({
   selector: 'app-send',
@@ -27,11 +37,11 @@ export class SendPage implements OnInit {
   public to: string;
   public amount: number;
   public message: string;
-  public useTotalAmount: boolean = false;
+  public useTotalAmount: boolean = true;
   public contacts: AddressBook = {};
   public proposal: ProposeTransactionObj;
   public fiatRate: RateResponse = undefined;
-  public recipients: TxRecipient[] = [];  // Initialize with one empty recipient
+  public recipients: TxRecipient[] = []; // Initialize with one empty recipient
 
   private isDevice = this.platform.is('capacitor');
   private isDark = this.themeService.isDark;
@@ -44,7 +54,8 @@ export class SendPage implements OnInit {
     public addressbookService: AddressbookService,
     public themeService: ThemeService,
     private toastService: ToastService,
-    public rateService: RateService) {
+    public rateService: RateService,
+  ) {
     this.to = '';
     this.amount = 0;
     this.message = '';
@@ -71,7 +82,7 @@ export class SendPage implements OnInit {
     this.addressbookService.getAddressBook().then(addressBook => {
       this.contacts = addressBook || {};
     });
-    this.rateService.currentFiatRate$.subscribe((value) => {
+    this.rateService.currentFiatRate$.subscribe(value => {
       this.fiatRate = value;
     });
   }
@@ -92,28 +103,47 @@ export class SendPage implements OnInit {
   }
 
   async openModalContacts() {
-    this.contacts = await this.addressbookService.getAddressBook() || {};
+    this.contacts = (await this.addressbookService.getAddressBook()) || {};
+    const contactsButton = Object.keys(this.contacts).map(address => {
+      return {
+        text: this.contacts[address],
+        icon: 'person',
+        handler: () => {
+          this.to = address;
+        },
+      };
+    });
+    if (contactsButton.length === 0) {
+      contactsButton.push({
+        text: 'No contacts available',
+        icon: 'alert-outline',
+        handler: () => {
+          // Do nothing
+        },
+      });
+    }
     const actionSheet = await this.actionSheetController.create({
       header: 'Contacts',
       cssClass: this.isDark ? 'dark-action-sheet' : '',
-      buttons: Object.keys(this.contacts).map((address) => {
-        return {
-          text: this.contacts[address],
-          icon: 'person',
-          handler: () => {
-            this.to = address;
+      buttons: [
+        ...contactsButton,
+        {
+          text: 'Close',
+          role: 'cancel',
+          data: {
+            action: 'cancel',
           },
-        };
-      }),
+        },
+      ],
     });
     await actionSheet.present();
   }
 
   async scanQRCode() {
     if (this.isDevice) {
-      const result = await CapacitorBarcodeScanner.scanBarcode(
-        {hint: CapacitorBarcodeScannerTypeHintALLOption.ALL}
-      );
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHintALLOption.ALL,
+      });
       if (result.ScanResult) {
         console.log('Scanned QR code', result.ScanResult);
         this.to = result.ScanResult;
@@ -126,20 +156,7 @@ export class SendPage implements OnInit {
     this.amount = 0;
     this.message = '';
     this.recipients = [];
-    this.useTotalAmount = false;
-  }
-
-  public setSendMax(event: any) {
-    this.useTotalAmount = event.detail.checked;
-    if (!this.to) {
-      this.toastService.presentToast('Please enter a valid address');
-      return;
-    }
-    this.amount = 0;
-    this.recipients = [];
-    if (this.useTotalAmount) {
-      this.recipients.push({address: this.to, amount: 0});
-    }
+    this.useTotalAmount = true;
   }
 
   async presentAlert(error: string) {
@@ -153,6 +170,8 @@ export class SendPage implements OnInit {
   }
 
   public async sendMax() {
+    this.amount = 0;
+    this.recipients = [];
     const actionSheet = await this.actionSheetController.create({
       header: 'Send maximum amount',
       cssClass: this.isDark ? 'dark-action-sheet' : '',
@@ -164,18 +183,23 @@ export class SendPage implements OnInit {
           handler: async () => {
             this.showProgress = true;
             await actionSheet.dismiss();
-            this.walletService.sendMax(this.to, this.message).then(async (tx) => {
-              console.log('Transaction Proposal created', tx);
-              this.showProgress = false;
-              this.clearForm();
-              this.proposal = await this.walletService.getProposals();
-              await this.toastService.presentToast('Transaction Proposal created');
-            }).catch(async (e) => {
-              console.log('Transaction Proposal creation error', e);
-              this.showProgress = false;
-              this.clearForm();
-              await this.presentAlert(e.toString());
-            });
+            this.walletService
+              .sendMax(this.to, this.message)
+              .then(async tx => {
+                console.log('Transaction Proposal created', tx);
+                this.showProgress = false;
+                this.clearForm();
+                this.proposal = await this.walletService.getProposals();
+                await this.toastService.presentToast(
+                  'Transaction Proposal created',
+                );
+              })
+              .catch(async e => {
+                console.log('Transaction Proposal creation error', e);
+                this.showProgress = false;
+                this.clearForm();
+                await this.presentAlert(e.toString());
+              });
           },
         },
         {
@@ -202,10 +226,17 @@ export class SendPage implements OnInit {
   }
 
   public async createTransaction() {
-    const totalAmount = this.recipients.reduce((sum, recipient) => sum + recipient.amount, 0).toFixed(8);
-    const header = this.recipients.length > 1 ?
-      'Confirm you are creating transaction of ' + totalAmount + 'BTC to multiple recipients' :
-      'Confirm you are creating transaction of ' + this.recipients[0].amount + ' BTC';
+    const totalAmount = this.recipients
+      .reduce((sum, recipient) => sum + recipient.amount, 0)
+      .toFixed(8);
+    const header =
+      this.recipients.length > 1
+        ? 'Confirm you are creating transaction of ' +
+          totalAmount +
+          'BTC to multiple recipients'
+        : 'Confirm you are creating transaction of ' +
+          this.recipients[0].amount +
+          ' BTC';
     const actionSheet = await this.actionSheetController.create({
       header: header,
       cssClass: this.isDark ? 'dark-action-sheet' : '',
@@ -218,19 +249,24 @@ export class SendPage implements OnInit {
             this.showProgress = true;
             await actionSheet.dismiss();
             try {
-              const tx = await this.walletService.createTx(this.recipients, this.message) || {};
+              const tx =
+                (await this.walletService.createTx(
+                  this.recipients,
+                  this.message,
+                )) || {};
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;
               this.clearForm();
               this.proposal = await this.walletService.getProposals();
-              await this.toastService.presentToast('Transaction Proposal created');
+              await this.toastService.presentToast(
+                'Transaction Proposal created',
+              );
             } catch (e: any) {
               console.log('Transaction Proposal creation error', e);
               this.showProgress = false;
               this.clearForm();
               await this.presentAlert(e.toString());
             }
-
           },
         },
         {
@@ -250,15 +286,18 @@ export class SendPage implements OnInit {
     this.showProgress = true;
     if (this.proposal) {
       console.log('Removing proposal', this.proposal.id);
-      this.walletService.removeProposal(this.proposal.id).then((response) => {
-        console.log('Proposal removed', JSON.stringify(response));
-        this.showProgress = false;
-        this.proposal = undefined;
-        this.toastService.presentToast('Proposal removed successfully');
-      }).catch((error) => {
-        this.showProgress = false;
-        console.error('Error removing proposal', error);
-      });
+      this.walletService
+        .removeProposal(this.proposal.id)
+        .then(response => {
+          console.log('Proposal removed', JSON.stringify(response));
+          this.showProgress = false;
+          this.proposal = undefined;
+          this.toastService.presentToast('Proposal removed successfully');
+        })
+        .catch(error => {
+          this.showProgress = false;
+          console.error('Error removing proposal', error);
+        });
     }
   }
 
@@ -268,16 +307,19 @@ export class SendPage implements OnInit {
       return;
     }
     console.log('Broadcasting proposal', tx);
-    this.walletService.broadcastTx(tx).then((response) => {
-      console.log('Proposal broadcasted', JSON.stringify(response));
-      this.showProgress = false;
-      this.proposal = undefined;
-      this.walletService.clearProposals();
-      this.toastService.presentToast('Proposal broadcasted successfully');
-    }).catch((error) => {
-      this.showProgress = false;
-      console.error('Error broadcasting proposal', error);
-    });
+    this.walletService
+      .broadcastTx(tx)
+      .then(response => {
+        console.log('Proposal broadcasted', JSON.stringify(response));
+        this.showProgress = false;
+        this.proposal = undefined;
+        this.walletService.clearProposals();
+        this.toastService.presentToast('Proposal broadcasted successfully');
+      })
+      .catch(error => {
+        this.showProgress = false;
+        console.error('Error broadcasting proposal', error);
+      });
   }
 
   protected readonly wallet = wallet;

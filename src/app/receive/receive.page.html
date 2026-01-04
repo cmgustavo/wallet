@@ -3,8 +3,8 @@
     <ion-title>Receive</ion-title>
     <ion-buttons *ngIf="walletService.wallet?.addresses" slot="end">
       <ion-button class="custom-small-button" (click)="walletService.getNewAddress()">
+        New Address
         <ion-icon slot="start" name="refresh-outline"></ion-icon>
-        Refresh
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -16,8 +16,8 @@
       <ion-title size="large">Receive</ion-title>
       <ion-buttons *ngIf="walletService.wallet?.addresses"  slot="end">
         <ion-button class="custom-small-button" (click)="walletService.getNewAddress()">
+          New Address
           <ion-icon slot="start" name="refresh-outline"></ion-icon>
-          Refresh
         </ion-button>
       </ion-buttons>
     </ion-toolbar>

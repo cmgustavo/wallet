@@ -20,8 +20,6 @@
     height: 100%;
     background: rgba(var(--ion-color-primary-rgb), 0.1);
     border-radius: 50%;
-    transform: scale(1);
-    animation: pulse 3s infinite;
   }
 
   .contact-icons {
@@ -45,31 +43,6 @@
         color: var(--ion-color-secondary);
         opacity: 0;
       }
-    }
-  }
-
-  .floating-contacts {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-
-    .contact-icon:nth-child(1) {
-      top: 20%;
-      left: 20%;
-      animation: float 3s infinite;
-    }
-
-    .contact-icon:nth-child(2) {
-      top: 20%;
-      right: 20%;
-      animation: float 3s infinite 1s;
-    }
-
-    .contact-icon:nth-child(3) {
-      bottom: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      animation: float 3s infinite 2s;
     }
   }
 }

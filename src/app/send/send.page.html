@@ -129,21 +129,26 @@
         </ion-button>
       </ion-item>
       <ion-item>
-        <ion-toggle [disabled]="showProgress || !to || (!useTotalAmount && recipients.length > 0)" [checked]="useTotalAmount" (ionChange)="setSendMax($event)">
-          Use Total Amount
-        </ion-toggle>
+        <ion-select justify="space-between"
+                    #selectModel="ngModel"
+                    [disabled]="showProgress || !to || (!useTotalAmount && recipients.length > 0)"
+                    [(ngModel)]="useTotalAmount" label="Mode" placeholder="Select option">
+          <ion-select-option [value]="true">Use all available funds</ion-select-option>
+          <ion-select-option [value]="false">Enter specific value</ion-select-option>
+        </ion-select>
       </ion-item>
-      <ion-item>
+      <ion-item *ngIf="selectModel.dirty && !useTotalAmount">
         <ion-input
-          type="number" [disabled]="showProgress || !to || useTotalAmount"
+          type="number" [disabled]="showProgress || !to"
           label="Amount" [(ngModel)]="amount"
           [helperText]="getFiatRateBtc(amount)"></ion-input>
       </ion-item>
       <ion-item>
         <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
       </ion-item>
-      <ion-button class="ion-margin-vertical" fill="clear"
-                  [disabled]="(!to || !amount || useTotalAmount || showProgress)"
+      <ion-button class="ion-margin" expand="block" fill="outline"
+                  *ngIf="selectModel.dirty && !useTotalAmount"
+                  [disabled]="(!to || !amount || showProgress)"
                   (click)="addRecipient()">
         Add Recipient
         <ion-icon name="add-circle-outline" slot="end"></ion-icon>
@@ -178,7 +183,8 @@
       </div>
 
       <ion-button class="ion-margin" expand="block"
-                  [disabled]="(showProgress || recipients.length === 0)"
+                  *ngIf="recipients.length > 0 || (to && useTotalAmount)"
+                  [disabled]="showProgress"
                   (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
       </ion-button>
     </ion-list>

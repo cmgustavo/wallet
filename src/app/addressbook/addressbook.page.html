@@ -6,8 +6,8 @@
     <ion-title>Address Book</ion-title>
     <ion-buttons slot="end">
       <ion-button class="custom-small-button" (click)="openModalAddContact()">
-        <ion-icon name="add"></ion-icon>
-        Add
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        New Contact
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -22,7 +22,7 @@
       <ion-title size="large">Address Book</ion-title>
       <ion-buttons slot="end">
         <ion-button class="custom-small-button" (click)="openModalAddContact()">
-          <ion-icon name="add"></ion-icon>
+          <ion-icon name="add-outline"></ion-icon>
         </ion-button>
       </ion-buttons>
     </ion-toolbar>
@@ -58,11 +58,6 @@
         <div class="circle-background"></div>
         <div class="contact-icons">
           <ion-icon class="contact-icon main" name="people-outline"></ion-icon>
-          <div class="floating-contacts">
-            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
-            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
-            <ion-icon class="contact-icon floating" name="person-outline"></ion-icon>
-          </div>
         </div>
       </div>
 
