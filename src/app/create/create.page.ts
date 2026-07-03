@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform} from '@ionic/angular';
@@ -8,27 +8,20 @@ import {IS_TESTNET} from "../constants";
 import {ToastService} from "../services/toast/toast.service";
 
 @Component({
-  selector: 'app-create',
-  templateUrl: './create.page.html',
-  styleUrls: ['./create.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+    selector: 'app-create',
+    templateUrl: './create.page.html',
+    styleUrls: ['./create.page.scss'],
+    imports: [IonicModule, CommonModule, FormsModule]
 })
-export class CreatePage implements OnInit {
+export class CreatePage {
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+  walletService = inject(WalletService);
+  platform = inject(Platform);
+
   public name: string = 'Bitcoin Wallet';
   public selectedNetwork: Network = IS_TESTNET ? 'testnet' : 'livenet';
   public showProgress: boolean = false;
-
-  constructor(
-    private router: Router,
-    private toastService: ToastService,
-    public walletService: WalletService,
-    public platform: Platform,
-  ) {
-  }
-
-  async ngOnInit() {
-  }
 
   submitRequest() {
     console.log(`Name: ${this.name}`);

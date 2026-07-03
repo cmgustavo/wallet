@@ -5,16 +5,15 @@ import {NgForOf, NgIf} from "@angular/common";
 import {TransactionDetailsComponent} from "../transaction-details/transaction-details.component";
 
 @Component({
-  selector: 'app-transactions-component',
-  templateUrl: './transactions.component.html',
-  styleUrls: ['./transactions.component.scss'],
-  standalone: true,
-  imports: [
-    IonicModule,
-    NgForOf,
-    NgIf,
-    TransactionDetailsComponent
-  ]
+    selector: 'app-transactions-component',
+    templateUrl: './transactions.component.html',
+    styleUrls: ['./transactions.component.scss'],
+    imports: [
+        IonicModule,
+        NgForOf,
+        NgIf,
+        TransactionDetailsComponent
+    ]
 })
 export class TransactionsComponent {
   @Input() transactions: Transaction[] | undefined;

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform} from '@ionic/angular';
@@ -8,29 +8,22 @@ import {IS_TESTNET} from "../constants";
 import {ToastService} from "../services/toast/toast.service";
 
 @Component({
-  selector: 'app-import',
-  templateUrl: './import.page.html',
-  styleUrls: ['./import.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+    selector: 'app-import',
+    templateUrl: './import.page.html',
+    styleUrls: ['./import.page.scss'],
+    imports: [IonicModule, CommonModule, FormsModule]
 })
-export class ImportPage implements OnInit {
+export class ImportPage {
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+  walletService = inject(WalletService);
+  platform = inject(Platform);
+
   public mnemonic: string = '';
   public name: string = 'Bitcoin Wallet';
   public selectedNetwork: Network = IS_TESTNET ? 'testnet' : 'livenet';
   public showProgress: boolean = false;
   public isDevice = this.platform.is('capacitor');
-
-  constructor(
-    private router: Router,
-    private toastService: ToastService,
-    public walletService: WalletService,
-    public platform: Platform,
-  ) {
-  }
-
-  async ngOnInit() {
-  }
 
   submitRequest() {
     console.log(`Mnemonic: ${this.mnemonic}`);

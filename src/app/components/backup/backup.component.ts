@@ -1,22 +1,20 @@
-import {Component, Input} from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import {IonicModule} from "@ionic/angular";
 import {NgForOf, NgIf} from "@angular/common";
 import {WalletService} from "../../services/wallet/wallet.service";
 
 @Component({
-  selector: 'app-backup-component',
-  templateUrl: './backup.component.html',
-  styleUrls: ['./backup.component.scss'],
-  standalone: true,
-  imports: [
-    IonicModule,
-    NgForOf,
-    NgIf
-  ]
+    selector: 'app-backup-component',
+    templateUrl: './backup.component.html',
+    styleUrls: ['./backup.component.scss'],
+    imports: [
+        IonicModule,
+        NgForOf,
+        NgIf
+    ]
 })
 export class BackupComponent {
-  @Input() mnemonic: string | undefined;
+  walletService = inject(WalletService);
 
-  constructor(public walletService: WalletService) {
-  }
+  @Input() mnemonic: string | undefined;
 }

@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import {Transaction} from "../../services/wallet/wallet.service";
 import {IonicModule, Platform} from "@ionic/angular";
 import {NgForOf, NgIf} from "@angular/common";
@@ -6,22 +6,22 @@ import {Browser} from "@capacitor/browser";
 import {RateService} from "../../services/rates/rates.service";
 
 @Component({
-  selector: 'app-transaction-details-component',
-  templateUrl: './transaction-details.component.html',
-  styleUrls: ['./transaction-details.component.scss'],
-  standalone: true,
-  imports: [
-    IonicModule,
-    NgForOf,
-    NgIf,
-  ]
+    selector: 'app-transaction-details-component',
+    templateUrl: './transaction-details.component.html',
+    styleUrls: ['./transaction-details.component.scss'],
+    imports: [
+        IonicModule,
+        NgForOf,
+        NgIf,
+    ]
 })
 export class TransactionDetailsComponent {
+  platform = inject(Platform);
+  rateService = inject(RateService);
+
   public isDevice = this.platform.is('capacitor');
   @Input() tx: Transaction | undefined;
   @Input() network: string | undefined;
-  constructor(public platform: Platform, public rateService: RateService) {
-  }
 
   getFiatRate(satoshi: number | undefined) {
     if (!satoshi) {

@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import * as bip39 from 'bip39';
 import BIP32Factory from 'bip32';
-import * as ecc from 'tiny-secp256k1';
+import * as ecc from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import {Preferences} from '@capacitor/preferences';
 import {IS_TESTNET, API_ENDPOINT} from '../../constants';

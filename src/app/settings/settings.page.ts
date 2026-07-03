@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {ActionSheetController, IonicModule, Platform} from '@ionic/angular';
 import {DisclaimerComponent} from '../components/disclaimer/disclaimer.component';
 import {ThemeService} from '../services/theme/theme.service';
@@ -13,13 +13,22 @@ import {RateResponse} from "../services/rates/rates.service";
 import {ToastService} from "../services/toast/toast.service";
 
 @Component({
-  selector: 'app-settings',
-  templateUrl: 'settings.page.html',
-  styleUrls: ['settings.page.scss'],
-  standalone: true,
-  imports: [IonicModule, DisclaimerComponent, NgIf],
+    selector: 'app-settings',
+    templateUrl: 'settings.page.html',
+    styleUrls: ['settings.page.scss'],
+    imports: [IonicModule, DisclaimerComponent, NgIf]
 })
 export class SettingsPage implements OnInit {
+  private themeService = inject(ThemeService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+  actionSheetController = inject(ActionSheetController);
+  walletService = inject(WalletService);
+  platform = inject(Platform);
+  configService = inject(ConfigService);
+  addressbookService = inject(AddressbookService);
+  rateService = inject(RateService);
+
   public darkMode: boolean;
   public balanceHidden: boolean = false;
   public isModalDisclaimerOpen: boolean = false;
@@ -29,17 +38,9 @@ export class SettingsPage implements OnInit {
   public fiatRate: RateResponse = undefined;
   public fiatRateValueStr : string = '';
 
-  constructor(
-    private themeService: ThemeService,
-    private router: Router,
-    private toastService: ToastService,
-    public actionSheetController: ActionSheetController,
-    public walletService: WalletService,
-    public platform: Platform,
-    public configService: ConfigService,
-    public addressbookService: AddressbookService,
-    public rateService: RateService,
-  ) {
+  constructor() {
+    const configService = this.configService;
+
     this.darkMode = this.themeService.isDark;
     configService.checkBalanceHidden().then((value) => {
       this.balanceHidden = value === 'true' ? true : false;

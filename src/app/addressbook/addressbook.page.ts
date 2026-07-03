@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform} from '@ionic/angular';
@@ -9,13 +9,17 @@ import {CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHintALLOption} from 
 import {ToastService} from "../services/toast/toast.service";
 
 @Component({
-  selector: 'app-addressbook',
-  templateUrl: './addressbook.page.html',
-  styleUrls: ['./addressbook.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+    selector: 'app-addressbook',
+    templateUrl: './addressbook.page.html',
+    styleUrls: ['./addressbook.page.scss'],
+    imports: [IonicModule, CommonModule, FormsModule]
 })
 export class AddressbookPage implements OnInit {
+  private toastService = inject(ToastService);
+  walletService = inject(WalletService);
+  platform = inject(Platform);
+  addressbookService = inject(AddressbookService);
+
   public name: string = '';
   public address: string = '';
 
@@ -23,14 +27,6 @@ export class AddressbookPage implements OnInit {
   public isDevice = this.platform.is('capacitor');
 
   public contacts: AddressBook = {};
-
-  constructor(
-    private toastService: ToastService,
-    public walletService: WalletService,
-    public platform: Platform,
-    public addressbookService: AddressbookService,
-  ) {
-  }
 
   async copyAddress(address: string) {
     if (this.isDevice) {

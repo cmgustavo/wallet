@@ -31,7 +31,7 @@
     </ion-item>
     <ion-item>
       <ion-label>Exchange Rate</ion-label>
-      <ion-note slot="end" *ngIf="fiatRate">1 BTC @{{fiatRateValueStr}}</ion-note>
+      <ion-note slot="end" *ngIf="fiatRate">1 BTC &#64;{{fiatRateValueStr}}</ion-note>
     </ion-item>
     <ion-item lines="none" button="RefreshExchangeRate" (click)="refreshExchangeRate()">
       <ion-label color="secondary">Refresh Exchange Rate</ion-label>
