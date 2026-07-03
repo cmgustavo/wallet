@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {IonicModule} from '@ionic/angular';
 import {CommonModule} from '@angular/common';
 import {Router} from "@angular/router";
@@ -10,24 +10,23 @@ import {DisclaimerComponent} from "../components/disclaimer/disclaimer.component
 import {RateResponse, RateService} from "../services/rates/rates.service";
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent],
+    selector: 'app-home',
+    templateUrl: 'home.page.html',
+    styleUrls: ['home.page.scss'],
+    imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent]
 })
 export class HomePage implements OnInit {
+  walletService = inject(WalletService);
+  private router = inject(Router);
+  private configService = inject(ConfigService);
+  private rateService = inject(RateService);
+
   public isModalDisclaimerOpen: boolean = false;
   public showProgress: boolean = false;
   public isBalanceHidden: boolean = false;
   public fiatRate: RateResponse = undefined;
 
-  constructor(
-    public walletService: WalletService,
-    private router: Router,
-    private configService: ConfigService,
-    private rateService: RateService
-  ) {
+  constructor() {
     this.configService.checkDisclaimer().then((value) => {
       if (!value) {
         this.isModalDisclaimerOpen = true;

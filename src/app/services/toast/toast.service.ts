@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Platform, ToastController } from '@ionic/angular';
 import { Toast } from '@capacitor/toast';
 
@@ -6,12 +6,10 @@ import { Toast } from '@capacitor/toast';
   providedIn: 'root'
 })
 export class ToastService {
-  public isDevice = this.platform.is('capacitor');
+  private platform = inject(Platform);
+  private toastCtrl = inject(ToastController);
 
-  constructor(
-    private platform: Platform,
-    private toastCtrl: ToastController
-  ) {}
+  public isDevice = this.platform.is('capacitor');
 
   async presentToast(message: string) {
     if (this.isDevice) {

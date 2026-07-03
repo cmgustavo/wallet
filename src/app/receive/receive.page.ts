@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, Platform} from '@ionic/angular';
@@ -9,20 +9,17 @@ import {Share} from "@capacitor/share";
 import {ToastService} from "../services/toast/toast.service";
 
 @Component({
-  selector: 'app-receive',
-  templateUrl: './receive.page.html',
-  styleUrls: ['./receive.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, QrCodeModule],
+    selector: 'app-receive',
+    templateUrl: './receive.page.html',
+    styleUrls: ['./receive.page.scss'],
+    imports: [IonicModule, CommonModule, FormsModule, QrCodeModule]
 })
 export class ReceivePage implements OnInit {
-  public isDevice = this.platform.is('capacitor');
+  walletService = inject(WalletService);
+  platform = inject(Platform);
+  private toastService = inject(ToastService);
 
-  constructor(
-    public walletService: WalletService,
-    public platform: Platform,
-    private toastService: ToastService) {
-  }
+  public isDevice = this.platform.is('capacitor');
 
   async ngOnInit() {
     await this.walletService.loadSaved();

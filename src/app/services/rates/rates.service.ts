@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {ConfigService} from "../config/config.service";
 import {CapacitorHttp, HttpResponse} from '@capacitor/core';
 import {Preferences} from "@capacitor/preferences";
@@ -21,11 +21,13 @@ const USER_AGENT = 'simple-wallet/1.0.0';
   providedIn: 'root'
 })
 export class RateService {
+  config = inject(ConfigService);
+
   private FIAT_RATE: string = 'fiat_rate';
   private currentFiatRateObs = new BehaviorSubject<RateResponse>(undefined);
   currentFiatRate$ = this.currentFiatRateObs.asObservable();
 
-  constructor(public config: ConfigService) {
+  constructor() {
     this.getFiatRate().then((value) => {
       if (value) {
         this.currentFiatRateObs.next(value);

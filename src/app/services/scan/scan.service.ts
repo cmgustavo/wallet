@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Camera,
   CameraResultType,
@@ -18,7 +18,9 @@ export class ScanService {
   private ADDRESS_STORAGE: string = 'addresses';
   private platform: Platform;
 
-  constructor(platform: Platform) {
+  constructor() {
+    const platform = inject(Platform);
+
     this.platform = platform;
   }
 

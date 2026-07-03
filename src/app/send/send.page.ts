@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {
@@ -26,13 +26,21 @@ import {wallet} from 'ionicons/icons';
 import {ToastService} from '../services/toast/toast.service';
 
 @Component({
-  selector: 'app-send',
-  templateUrl: './send.page.html',
-  styleUrls: ['./send.page.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
+    selector: 'app-send',
+    templateUrl: './send.page.html',
+    styleUrls: ['./send.page.scss'],
+    imports: [IonicModule, CommonModule, FormsModule]
 })
 export class SendPage implements OnInit {
+  platform = inject(Platform);
+  walletService = inject(WalletService);
+  actionSheetController = inject(ActionSheetController);
+  alertController = inject(AlertController);
+  addressbookService = inject(AddressbookService);
+  themeService = inject(ThemeService);
+  private toastService = inject(ToastService);
+  rateService = inject(RateService);
+
   public showProgress: boolean = false;
   public to: string;
   public amount: number;
@@ -46,16 +54,7 @@ export class SendPage implements OnInit {
   private isDevice = this.platform.is('capacitor');
   private isDark = this.themeService.isDark;
 
-  constructor(
-    public platform: Platform,
-    public walletService: WalletService,
-    public actionSheetController: ActionSheetController,
-    public alertController: AlertController,
-    public addressbookService: AddressbookService,
-    public themeService: ThemeService,
-    private toastService: ToastService,
-    public rateService: RateService,
-  ) {
+  constructor() {
     this.to = '';
     this.amount = 0;
     this.message = '';
