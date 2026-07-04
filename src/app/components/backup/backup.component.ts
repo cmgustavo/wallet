@@ -1,6 +1,5 @@
 import { Component, Input, inject } from '@angular/core';
 import {IonicModule} from "@ionic/angular";
-import {NgForOf, NgIf} from "@angular/common";
 import {WalletService} from "../../services/wallet/wallet.service";
 
 @Component({
@@ -8,9 +7,7 @@ import {WalletService} from "../../services/wallet/wallet.service";
     templateUrl: './backup.component.html',
     styleUrls: ['./backup.component.scss'],
     imports: [
-        IonicModule,
-        NgForOf,
-        NgIf
+        IonicModule
     ]
 })
 export class BackupComponent {

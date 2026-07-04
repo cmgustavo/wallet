@@ -1,7 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
 import {Transaction} from "../../services/wallet/wallet.service";
 import {IonicModule, Platform} from "@ionic/angular";
-import {NgForOf, NgIf} from "@angular/common";
 import {Browser} from "@capacitor/browser";
 import {RateService} from "../../services/rates/rates.service";
 
@@ -10,9 +9,7 @@ import {RateService} from "../../services/rates/rates.service";
     templateUrl: './transaction-details.component.html',
     styleUrls: ['./transaction-details.component.scss'],
     imports: [
-        IonicModule,
-        NgForOf,
-        NgIf,
+        IonicModule
     ]
 })
 export class TransactionDetailsComponent {

@@ -25,7 +25,7 @@
       </ion-card-title>
     </ion-card-header>
 
-    <ion-card-content class="ion-margin-vertical">
+    <ion-card-content class="ion-margin-vertical ion-text-center">
       <ion-text>
         <h1>{{ isBalanceHidden ? 'Hidden' : walletService.wallet.balanceStr }}</h1>
       </ion-text>
@@ -36,41 +36,26 @@
   </ion-card>
 
   <div *ngIf="walletService.wallet">
-    <div class="ion-margin-horizontal">
-      <ion-text>
-        <h4>Transactions</h4>
-      </ion-text>
-    </div>
     <app-transactions-component [network]="walletService.wallet.network"
                                 [transactions]="walletService.wallet.transactions"></app-transactions-component>
   </div>
 
   <div *ngIf="!walletService.wallet" class="main-centered">
-    <div class="empty-wallet-container">
-      <!-- Icon container with animation -->
-      <div class="icon-container">
-        <ion-icon name="wallet-outline" class="wallet-icon"></ion-icon>
-      </div>
-
-      <!-- Message container -->
-      <div class="message-container">
-        <h2>No Wallet Found</h2>
-        <p>Get started by creating a new wallet or importing an existing one</p>
-      </div>
-
-      <!-- Buttons container -->
       <div class="buttons-container">
         <ion-button expand="block" class="create-button" (click)="createWallet()">
           <ion-icon slot="start" name="add-circle-outline"></ion-icon>
           Create New Wallet
         </ion-button>
 
+        <div class="ion-margin-vertical">
+          <ion-text color="medium">- or -</ion-text>
+        </div>
+
         <ion-button expand="block" fill="outline" (click)="importWallet()" class="import-button">
           <ion-icon slot="start" name="download-outline"></ion-icon>
-          Import Existing Wallet
+          Import
         </ion-button>
       </div>
-    </div>
   </div>
 
   <ion-modal [isOpen]="isModalDisclaimerOpen">

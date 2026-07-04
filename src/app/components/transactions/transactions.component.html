@@ -1,6 +1,10 @@
 <div *ngIf="transactions?.length; then ListTx else NoTx"></div>
 <ng-template #ListTx>
-
+  <div class="ion-margin-horizontal">
+    <ion-text color="secondary">
+      <h5>Transactions</h5>
+    </ion-text>
+  </div>
   <ion-list>
     <ion-item button (click)="openTransactionDetails(tx)" *ngFor="let tx of transactions">
       <ion-icon *ngIf="tx.type === 'received'" color="success" slot="start" name="arrow-down-circle-outline"></ion-icon>

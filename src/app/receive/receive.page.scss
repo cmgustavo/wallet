@@ -30,12 +30,12 @@
   .wallet-icon-wrapper {
     position: relative;
     padding: 2rem;
-    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    background: rgba(var(--ion-color-success-rgb), 0.1);
     border-radius: 50%;
 
     .main-icon {
       font-size: 6rem;
-      color: var(--ion-color-primary);
+      color: var(--ion-color-success);
     }
   }
 }

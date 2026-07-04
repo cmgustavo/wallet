@@ -42,20 +42,6 @@
       z-index: 1;
     }
   }
-
-  .animation-container {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    z-index: 2;
-
-    .status-icon {
-      font-size: 2.5rem;
-      color: var(--ion-color-warning);
-      background: var(--ion-background-color);
-      border-radius: 50%;
-    }
-  }
 }
 
 .message-container {

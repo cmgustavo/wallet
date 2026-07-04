@@ -13,7 +13,7 @@ import {RateResponse, RateService} from "../services/rates/rates.service";
     selector: 'app-home',
     templateUrl: 'home.page.html',
     styleUrls: ['home.page.scss'],
-    imports: [IonicModule, CommonModule, AddressesComponent, TransactionsComponent, DisclaimerComponent]
+    imports: [IonicModule, CommonModule, TransactionsComponent, DisclaimerComponent]
 })
 export class HomePage implements OnInit {
   walletService = inject(WalletService);
