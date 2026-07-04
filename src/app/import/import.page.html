@@ -26,7 +26,7 @@
           <ion-input label="Name" [(ngModel)]="name" [disabled]="showProgress"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-select disabled="true" label="Network" placeholder="Select Network" [(ngModel)]="selectedNetwork">
+          <ion-select [disabled]="true" label="Network" placeholder="Select Network" [(ngModel)]="selectedNetwork">
             <ion-select-option value="livenet">Livenet</ion-select-option>
             <ion-select-option value="testnet">Testnet</ion-select-option>
           </ion-select>
@@ -41,9 +41,11 @@
 
 
 <ion-footer class="ion-no-border">
-  <ion-button
-    expand="full"
-    (click)="submitRequest()" [disabled]="!mnemonic || !name || showProgress">
-    Import
-  </ion-button>
+  <ion-toolbar>
+    <ion-button
+      expand="full"
+      (click)="submitRequest()" [disabled]="!mnemonic || !name || showProgress">
+      Import
+    </ion-button>
+  </ion-toolbar>
 </ion-footer>

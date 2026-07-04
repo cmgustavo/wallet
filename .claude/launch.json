@@ -5,7 +5,15 @@
       "name": "wallet-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
-      "port": 4200
+      "port": 4200,
+      "autoPort": false
+    },
+    {
+      "name": "wallet-dev-alt",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start", "--", "--port=4201"],
+      "port": 4201,
+      "autoPort": false
     }
   ]
 }

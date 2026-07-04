@@ -69,7 +69,9 @@
         <app-disclaimer-component></app-disclaimer-component>
       </ion-content>
       <ion-footer class="ion-no-border">
-        <ion-button (click)="closeDisclaimer()" expand="block">Accept</ion-button>
+        <ion-toolbar>
+          <ion-button (click)="closeDisclaimer()" expand="block">Accept</ion-button>
+        </ion-toolbar>
       </ion-footer>
     </ng-template>
   </ion-modal>

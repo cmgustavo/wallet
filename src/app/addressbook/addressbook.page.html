@@ -100,11 +100,13 @@
         </ion-item>
       </ion-content>
       <ion-footer class="ion-no-border">
-        <ion-button
-          expand="full"
-          [disabled]="!name || !address"
-          (click)="addContact()">Save
-        </ion-button>
+        <ion-toolbar>
+          <ion-button
+            expand="full"
+            [disabled]="!name || !address"
+            (click)="addContact()">Save
+          </ion-button>
+        </ion-toolbar>
       </ion-footer>
     </ng-template>
   </ion-modal>
