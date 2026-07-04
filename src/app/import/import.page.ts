@@ -40,11 +40,14 @@ export class ImportPage {
       console.log('Updating wallet transactions');
       await this.walletService.updateTransactions();
       this.showProgress = false;
+      this.mnemonic = '';
       await this.toastService.presentToast('Wallet imported successfully');
-      this.router.navigate(['/tabs/home']);
+      await this.router.navigate(['/tabs/home']);
     }).catch(async error => {
       console.log('Error importing wallet', error);
       await this.toastService.presentToast('Error importing wallet');
+      this.showProgress = false;
+      this.mnemonic = '';
     });
 
   }

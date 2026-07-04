@@ -6,8 +6,7 @@
     <ion-title>Address Book</ion-title>
     <ion-buttons slot="end">
       <ion-button class="custom-small-button" (click)="openModalAddContact()">
-        <ion-icon slot="start" name="add-outline"></ion-icon>
-        New Contact
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -22,7 +21,7 @@
       <ion-title size="large">Address Book</ion-title>
       <ion-buttons slot="end">
         <ion-button class="custom-small-button" (click)="openModalAddContact()">
-          <ion-icon name="add-outline"></ion-icon>
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
         </ion-button>
       </ion-buttons>
     </ion-toolbar>
@@ -70,7 +69,7 @@
       <!-- Action button -->
       <ion-button class="add-contact-button" (click)="openModalAddContact()">
         <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        Add Your First Contact
+        Add Contact
       </ion-button>
     </div>
 
@@ -88,12 +87,10 @@
       </ion-header>
       <ion-content class="ion-padding">
         <ion-item>
-          <ion-label>Name</ion-label>
-          <ion-input [(ngModel)]="name"></ion-input>
+          <ion-input label="Name" [(ngModel)]="name"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-label>Address</ion-label>
-          <ion-input [(ngModel)]="address"></ion-input>
+          <ion-input label="Address" [(ngModel)]="address"></ion-input>
           <ion-button class="action-small-button" slot="end" (click)="scanQRCode()">
             <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
           </ion-button>
