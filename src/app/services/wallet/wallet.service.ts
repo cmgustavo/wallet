@@ -348,13 +348,10 @@ export class WalletService {
     // Update local transaction
     const existingTx = this.wallet?.transactions?.find(t => t.id === txid);
     if (existingTx) {
-      existingTx.amount = tx.vout.reduce(
-        (previousValue: number, currentValue: any) => {
-          return previousValue + currentValue.value;
-        },
-        0,
-      );
+      existingTx.amount = this.calculateTxAmount(tx, existingTx.type);
+      existingTx.amountStr = this.satoshisToBtc(existingTx.amount) + ' BTC';
       existingTx.fee = tx.fee;
+      existingTx.feeStr = this.satoshisToBtc(tx.fee) + ' BTC';
       existingTx.confirmed = tx.status.confirmed;
       existingTx.block_time = tx.status.block_time;
       existingTx.date = tx.status.block_time
@@ -373,6 +370,29 @@ export class WalletService {
     return response.json();
   };
 
+  private isMyAddress = (address?: string): boolean =>
+    !!address &&
+    !!this.wallet?.addresses?.some(addr => addr.address === address);
+
+  private calculateTxAmount = (
+    transaction: RemoteTransactionObj,
+    type: TransactionType,
+  ): number => {
+    return transaction.vout.reduce((sum: number, out: Vout) => {
+      if (out.value === undefined) return sum;
+      if (type === 'sent') {
+        // Excluir el change: solo contar outputs hacia addresses externas
+        return this.isMyAddress(out.scriptpubkey_address)
+          ? sum
+          : sum + out.value;
+      }
+      // received / moved: contar outputs hacia addresses de la wallet
+      return this.isMyAddress(out.scriptpubkey_address)
+        ? sum + out.value
+        : sum;
+    }, 0);
+  };
+
   private processTransaction = (
     transaction: RemoteTransactionObj,
     address: string,
@@ -381,36 +401,29 @@ export class WalletService {
     if (!this.wallet?.addresses) {
       throw new Error('Wallet addresses not initialized');
     }
-    const inputs = transaction.vin.map(
-      (input: any) => input.prevout.scriptpubkey_address,
+    const isSentByMe = transaction.vin.some(input =>
+      this.isMyAddress(input.prevout.scriptpubkey_address),
     );
-    const outputs = transaction.vout.map(
-      (output: any) => output.scriptpubkey_address,
+    const isReceivedByMe = transaction.vout.some(out =>
+      this.isMyAddress(out.scriptpubkey_address),
+    );
+    // Si envié y todos los outputs vuelven a la wallet, es un movimiento interno
+    const allOutputsMine = transaction.vout.every(out =>
+      this.isMyAddress(out.scriptpubkey_address),
     );
 
-    const isSentByMe = transaction.vin.some(input =>
-      this.wallet?.addresses?.some(
-        addr => addr.address === input.prevout.scriptpubkey_address,
-      ),
-    );
+    const type: TransactionType = isSentByMe
+      ? allOutputsMine
+        ? 'moved'
+        : 'sent'
+      : isReceivedByMe
+      ? 'received'
+      : 'moved';
 
     const date = transaction.status.block_time
       ? new Date(transaction.status.block_time * 1000)
       : undefined;
-    const amount = transaction.vout.reduce(
-      (previousValue: number, currentValue: Vout) => {
-        // Handle undefined value case
-        if (currentValue.value === undefined) return previousValue;
-
-        if (!outputs.includes(address)) {
-          return previousValue - currentValue.value;
-        }
-        return currentValue.scriptpubkey_address === address
-          ? previousValue + currentValue.value
-          : previousValue;
-      },
-      0,
-    );
+    const amount = this.calculateTxAmount(transaction, type);
     return {
       id: transaction.txid,
       amount,
@@ -424,11 +437,7 @@ export class WalletService {
       confirmed: transaction.status.confirmed,
       fee: transaction.fee,
       feeStr: this.satoshisToBtc(transaction.fee) + ' BTC',
-      type: isSentByMe
-        ? 'sent'
-        : outputs.includes(address)
-        ? 'received'
-        : 'moved',
+      type,
     };
   };
 
