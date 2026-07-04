@@ -239,11 +239,16 @@ export class WalletService {
     }
     const root = this.bip32.fromSeed(await bip39.mnemonicToSeedSync(mnemonic));
 
+    // BIP44 gap limit: stop scanning a chain only after this many
+    // consecutive unused addresses
+    const gapLimit = IS_TESTNET ? 5 : 20;
+    const requestDelay = 1000; // Delay between API calls to prevent rate limiting
+
     const newAddresses: Address[] = [];
-    // Import wallet GAP limit 3
-    const gapLimit = IS_TESTNET ? 1 : 3;
-    for (let i = 0; i < gapLimit; i++) {
-      for (let change = 0; change < 2; change++) {
+    for (let change = 0; change < 2; change++) {
+      const chainAddresses: Address[] = [];
+      let lastUsedIndex = -1;
+      for (let i = 0; i - lastUsedIndex <= gapLimit; i++) {
         const addressNode = root.derivePath(
           this.getDerivationPath(i, change, IS_TESTNET),
         );
@@ -252,30 +257,42 @@ export class WalletService {
         if (!address) throw new Error('Could not generate address');
         let balance = 0;
         try {
-          balance = await this.getAddressBalance(address);
+          // An address with txs but balance 0 still counts as used,
+          // so check tx count and not just UTXOs
+          const info = await this.getAddressInfo(address);
+          balance = info.balance;
+          if (info.txCount > 0) lastUsedIndex = i;
         } catch (error) {
           console.error('No problem, continue:', error);
         }
-        newAddresses.push({
+        chainAddresses.push({
           address: address,
           balance: balance,
           index: i,
           change: change,
         });
+        // Add a delay to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, requestDelay));
       }
-      // Add a delay to prevent rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Keep the used addresses plus one fresh address per chain,
+      // discarding the trailing gap
+      newAddresses.push(...chainAddresses.slice(0, lastUsedIndex + 2));
     }
 
     if (!newAddresses[0])
       throw new Error('Could not generate address to Import Wallet');
 
+    const totalBalance = newAddresses.reduce(
+      (sum, address) => sum + address.balance,
+      0,
+    );
+
     // Save the mnemonic and address to storage
     this.wallet = {
       mnemonic,
       name,
-      balance: 0,
-      balanceStr: '0 BTC',
+      balance: totalBalance,
+      balanceStr: this.satoshisToBtc(totalBalance) + ' BTC',
       network: IS_TESTNET ? 'testnet' : 'livenet',
       addresses: newAddresses,
       transactions: [],
@@ -330,7 +347,7 @@ export class WalletService {
     isTestnet: boolean = false,
   ) => {
     // m / purpose' / coin_type' / account' / change / address_index
-    return `m/84'/${isTestnet ? 0 : 1}'/0'/${change}/${index}`;
+    return `m/84'/${isTestnet ? 1 : 0}'/0'/${change}/${index}`;
   };
 
   private getTransactionsByAddress = async (
@@ -576,6 +593,21 @@ export class WalletService {
     });
     await this.saveWallet();
     return newAddress;
+  };
+
+  private getAddressInfo = async (
+    address: string,
+  ): Promise<{balance: number; txCount: number}> => {
+    const url = `${API_ENDPOINT}/address/${address}`;
+    const response = await fetch(url);
+    const info = await response.json();
+    const balance =
+      info.chain_stats.funded_txo_sum -
+      info.chain_stats.spent_txo_sum +
+      info.mempool_stats.funded_txo_sum -
+      info.mempool_stats.spent_txo_sum;
+    const txCount = info.chain_stats.tx_count + info.mempool_stats.tx_count;
+    return {balance, txCount};
   };
 
   private getAddressBalance = async (address: string): Promise<number> => {
