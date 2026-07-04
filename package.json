@@ -46,6 +46,7 @@
     "ecpair": "^2.1.0",
     "ionicons": "^8.0.13",
     "ng-qrcode": "^20.0.1",
+    "process": "^0.11.10",
     "rxjs": "~7.8.0",
     "stream": "npm:stream-browserify@^3.0.0",
     "tslib": "^2.3.0",
