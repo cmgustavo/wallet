@@ -11,6 +11,7 @@ import {IS_TESTNET} from "../constants";
 import {RateService} from "../services/rates/rates.service";
 import {RateResponse} from "../services/rates/rates.service";
 import {ToastService} from "../services/toast/toast.service";
+import {APP_VERSION} from "../../environments/version";
 
 @Component({
     selector: 'app-settings',
@@ -33,6 +34,7 @@ export class SettingsPage implements OnInit {
   public balanceHidden: boolean = false;
   public isModalDisclaimerOpen: boolean = false;
   public isDevice = this.platform.is('capacitor');
+  public appVersion = APP_VERSION;
   public selectedNetwork = IS_TESTNET ? 'testnet' : 'livenet';
   private isDark = this.themeService.isDark;
   public fiatRate: RateResponse = undefined;
