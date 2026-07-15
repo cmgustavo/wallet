@@ -6,9 +6,12 @@
  *   node scripts/release.js [patch|minor|major|<x.y.z>] [options]
  *
  * Options:
+ *   --build-only  Bump versionCode only, keeping the semantic version. Use when
+ *                 Play rejects an upload and needs a fresh versionCode for the
+ *                 same user-facing version.
  *   --dev         Build with the development configuration (default: production)
- *   --no-bump     Keep the current version, only rebuild
- *   --no-clean    Skip removing www/, .angular/cache and the gradle clean
+ *   --no-bump     Keep both the version and versionCode, only rebuild
+ *   --no-clean    Skip removing www/ and .angular/cache
  *   --no-git      Do not commit nor tag the release
  *   --no-open     Do not open Android Studio at the end
  *   --dry-run     Print what would happen without touching anything
@@ -33,6 +36,7 @@ const has = (flag) => args.includes(flag);
 const bumpArg = args.find((a) => !a.startsWith('--')) || 'patch';
 
 const opts = {
+  buildOnly: has('--build-only'),
   dev: has('--dev'),
   bump: !has('--no-bump'),
   clean: !has('--no-clean'),
@@ -40,6 +44,10 @@ const opts = {
   open: !has('--no-open'),
   dryRun: has('--dry-run'),
 };
+
+// --build-only touches versionCode only; --no-bump freezes both.
+const bumpCode = opts.bump;
+const bumpVersion = opts.bump && !opts.buildOnly;
 
 const log = (msg) => console.log(`\x1b[36m▸\x1b[0m ${msg}`);
 const warn = (msg) => console.log(`\x1b[33m!\x1b[0m ${msg}`);
@@ -75,23 +83,28 @@ if (opts.git && !opts.dryRun) {
 }
 
 // --- 2. Resolve versions ------------------------------------------------
+if (opts.buildOnly && !opts.bump) die('--build-only and --no-bump contradict each other.');
+if (opts.buildOnly && args.includes(bumpArg) && args.some((a) => !a.startsWith('--'))) {
+  warn(`--build-only ignores the "${bumpArg}" argument: the version stays put.`);
+}
+
 const pkg = JSON.parse(fs.readFileSync(PKG, 'utf8'));
-const version = opts.bump ? nextVersion(pkg.version, bumpArg) : pkg.version;
+const version = bumpVersion ? nextVersion(pkg.version, bumpArg) : pkg.version;
 
 const gradleSrc = fs.readFileSync(GRADLE, 'utf8');
 const currentCode = Number((gradleSrc.match(/versionCode\s+(\d+)/) || [])[1]);
 if (!currentCode) die('Could not read versionCode from android/app/build.gradle');
-const versionCode = opts.bump ? currentCode + 1 : currentCode;
+const versionCode = bumpCode ? currentCode + 1 : currentCode;
 
 console.log('');
-log(`Version:     ${pkg.version} -> ${version}`);
-log(`versionCode: ${currentCode} -> ${versionCode}`);
+log(`Version:     ${bumpVersion ? `${pkg.version} -> ${version}` : `${version} (unchanged)`}`);
+log(`versionCode: ${bumpCode ? `${currentCode} -> ${versionCode}` : `${versionCode} (unchanged)`}`);
 log(`Build:       ${opts.dev ? 'development' : 'production'}`);
 if (opts.dryRun) warn('dry-run: no changes will be written');
 console.log('');
 
 // --- 3. Propagate the version ------------------------------------------
-if (opts.bump) {
+if (bumpVersion) {
   pkg.version = version;
   write(PKG, JSON.stringify(pkg, null, 2) + '\n');
 
@@ -102,14 +115,17 @@ if (opts.bump) {
     if (lock.packages && lock.packages['']) lock.packages[''].version = version;
     write(LOCK, JSON.stringify(lock, null, 2) + '\n');
   }
+  log('Updated package.json and package-lock.json');
+}
 
+if (bumpCode) {
   write(
     GRADLE,
     gradleSrc
       .replace(/versionCode\s+\d+/, `versionCode ${versionCode}`)
       .replace(/versionName\s+"[^"]*"/, `versionName "${version}"`)
   );
-  log('Updated package.json, package-lock.json and build.gradle');
+  log('Updated build.gradle');
 }
 
 // Always regenerate: keeps the app in sync even with --no-bump.
@@ -121,7 +137,11 @@ write(
 );
 log('Generated src/environments/version.ts');
 
-// --- 4. Clean -----------------------------------------------------------
+// --- 4. Clean the web build --------------------------------------------
+// The native side is intentionally left alone: Gradle is driven from Android
+// Studio, which uses its own bundled JDK. Running ./gradlew from the CLI picks
+// up the system JAVA_HOME instead, and Gradle 8.10 rejects Java 25 with
+// "Unsupported class file major version 69". Use Build > Clean Project there.
 if (opts.clean) {
   for (const dir of ['www', '.angular/cache']) {
     const target = path.join(ROOT, dir);
@@ -130,8 +150,6 @@ if (opts.clean) {
       if (!opts.dryRun) fs.rmSync(target, {recursive: true, force: true});
     }
   }
-  const gradlew = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
-  run(`${gradlew} clean`, path.join(ROOT, 'android'));
 }
 
 // --- 5. Build + sync ----------------------------------------------------
@@ -140,16 +158,40 @@ run(`npx ng build --configuration ${opts.dev ? 'development' : 'production'}`);
 run('npx cap sync android');
 
 // --- 6. Commit + tag ----------------------------------------------------
-if (opts.git && opts.bump) {
+function tagExists(tag) {
+  try {
+    execSync(`git rev-parse -q --verify refs/tags/${tag}`, {cwd: ROOT, stdio: 'pipe'});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (opts.git && bumpCode) {
+  // v1.0.11 is already taken by the original release, so a re-upload of the same
+  // version gets its own tag keyed by the build number.
+  const tag = opts.buildOnly ? `v${version}-build${versionCode}` : `v${version}`;
+  const message = opts.buildOnly
+    ? `Bump build to ${versionCode} for v${version}`
+    : `Release v${version} (build ${versionCode})`;
+
   run(`git add package.json package-lock.json android/app/build.gradle src/environments/version.ts`);
-  run(`git commit -m "Release v${version} (build ${versionCode})"`);
-  run(`git tag v${version}`);
-  console.log('');
-  warn(`Tagged v${version}. Push with: git push && git push --tags`);
+  run(`git commit -m "${message}"`);
+
+  if (!opts.dryRun && tagExists(tag)) {
+    warn(`Tag ${tag} already exists -- skipping tag. Committed anyway.`);
+  } else {
+    run(`git tag ${tag}`);
+    console.log('');
+    warn(`Tagged ${tag}. Push with: git push && git push --tags`);
+  }
 }
 
 // --- 7. Open Android Studio --------------------------------------------
 if (opts.open) run('npx cap open android');
 
 console.log('');
-console.log(`\x1b[32m✓ Release v${version} (build ${versionCode}) ready\x1b[0m`);
+console.log(`\x1b[32m✓ Web build for v${version} (build ${versionCode}) is ready\x1b[0m`);
+console.log('  Now, in Android Studio:');
+console.log('    1. Build > Clean Project');
+console.log('    2. Build > Generate Signed App Bundle / APK');
