@@ -8,6 +8,7 @@ import {
   Platform,
 } from '@ionic/angular';
 import {
+  FeeLevel,
   ProposeTransactionObj,
   WalletService,
   TxRecipient,
@@ -47,6 +48,8 @@ export class SendPage implements OnInit {
   public message: string;
   public useTotalAmount: boolean = true;
   public acknowledgeCreateOnly: boolean = false;
+  public feeLevel: FeeLevel = 'normal';
+  public feeRates: Record<FeeLevel, number> | undefined = undefined;
   public contacts: AddressBook = {};
   public proposal: ProposeTransactionObj;
   public fiatRate: RateResponse = undefined;
@@ -70,6 +73,7 @@ export class SendPage implements OnInit {
       this.addressbookService.getAddressBook().then(addressBook => {
         this.contacts = addressBook || {};
       });
+      this.loadFeeRates();
       event.target.complete();
     }, 2000);
   }
@@ -85,6 +89,23 @@ export class SendPage implements OnInit {
     this.rateService.currentFiatRate$.subscribe(value => {
       this.fiatRate = value;
     });
+    this.loadFeeRates();
+  }
+
+  private async loadFeeRates() {
+    try {
+      this.feeRates = await this.walletService.getFeeRates();
+    } catch (e) {
+      console.log('Could not load fee rates', e);
+      this.feeRates = undefined;
+    }
+  }
+
+  public getFeeRateStr(feeLevel: FeeLevel): string {
+    if (!this.feeRates) {
+      return '';
+    }
+    return `${this.feeRates[feeLevel].toFixed(1)} sat/vB`;
   }
 
   getFiatRate(satoshi: number | undefined) {
@@ -169,6 +190,7 @@ export class SendPage implements OnInit {
     this.recipients = [];
     this.useTotalAmount = true;
     this.acknowledgeCreateOnly = false;
+    this.feeLevel = 'normal';
   }
 
   async presentAlert(error: string) {
@@ -196,7 +218,7 @@ export class SendPage implements OnInit {
             this.showProgress = true;
             await actionSheet.dismiss();
             this.walletService
-              .sendMax(this.to, this.message)
+              .sendMax(this.to, this.message, this.feeLevel)
               .then(async tx => {
                 console.log('Transaction Proposal created', tx);
                 this.showProgress = false;
@@ -322,6 +344,7 @@ export class SendPage implements OnInit {
                 (await this.walletService.createTx(
                   this.recipients,
                   this.message,
+                  this.feeLevel,
                 )) || {};
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;

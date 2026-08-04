@@ -69,6 +69,8 @@ export interface TxRecipient {
   amount: number;
 }
 
+export type FeeLevel = 'economic' | 'normal' | 'priority';
+
 export interface RemoteTransactionObj {
   txid: string;
   version: number;
@@ -146,8 +148,14 @@ export class WalletService {
   private WALLET_STORAGE: string = 'wallet';
   private bip32 = BIP32Factory(ecc);
 
-  private cachedFeeRate: number = 0;
+  private cachedFeeRates: Record<string, number> | null = null;
   private lastFetch: number = 0;
+
+  // Confirmation targets (in blocks) for each fee level, per network.
+  // Lower target => faster confirmation => higher fee.
+  private feeLevelBlocks: Record<FeeLevel, number> = IS_TESTNET
+    ? {economic: 144, normal: 25, priority: 2}
+    : {economic: 144, normal: 6, priority: 1};
 
   public remoteTransactions: RemoteTransactionObj[] = [];
 
@@ -657,15 +665,34 @@ export class WalletService {
     return address;
   };
 
-  private currentFeeRate = async (): Promise<number> => {
+  private currentFeeRate = async (
+    feeLevel: FeeLevel = 'normal',
+  ): Promise<number> => {
     const url = `${API_ENDPOINT}/fee-estimates`;
-    if (!this.cachedFeeRate || Date.now() - this.lastFetch > 60000) {
+    if (!this.cachedFeeRates || Date.now() - this.lastFetch > 60000) {
       const response = await fetch(url);
-      const feeRates = await response.json();
-      this.cachedFeeRate = IS_TESTNET ? feeRates['25'] : feeRates['6']; // 6 blocks
+      this.cachedFeeRates = await response.json();
       this.lastFetch = Date.now();
     }
-    return this.cachedFeeRate;
+    const blocks = this.feeLevelBlocks[feeLevel];
+    // Fall back to the normal target and finally to 1 sat/vB if the
+    // requested confirmation target is missing from the response.
+    return (
+      this.cachedFeeRates?.[String(blocks)] ??
+      this.cachedFeeRates?.[String(this.feeLevelBlocks.normal)] ??
+      1
+    );
+  };
+
+  // Estimated fee rate (sat/vB) for each fee level, so the UI can show the
+  // impact of each option before creating a transaction.
+  public getFeeRates = async (): Promise<Record<FeeLevel, number>> => {
+    const [economic, normal, priority] = await Promise.all([
+      this.currentFeeRate('economic'),
+      this.currentFeeRate('normal'),
+      this.currentFeeRate('priority'),
+    ]);
+    return {economic, normal, priority};
   };
 
   private getUtxosByAddress = async (address: string): Promise<any[]> => {
@@ -742,13 +769,17 @@ export class WalletService {
   }
 
   // Create a transaction with MAX amount available
-  public sendMax = async (to: string, message: string): Promise<any> => {
+  public sendMax = async (
+    to: string,
+    message: string,
+    feeLevel: FeeLevel = 'normal',
+  ): Promise<any> => {
     if (!to || !this.wallet || !this.wallet.mnemonic)
       throw new Error('Wallet not initialized');
 
     const utxos = await this.getUTXOs();
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-    const feeRate = await this.currentFeeRate();
+    const feeRate = await this.currentFeeRate(feeLevel);
 
     const inputSize = 68; // Assuming P2WPKH
     const outputSize = 31;
@@ -862,7 +893,7 @@ export class WalletService {
     }
   };
 
-  public createTx = async (recipients: TxRecipient[], message: string): Promise<any> => {
+  public createTx = async (recipients: TxRecipient[], message: string, feeLevel: FeeLevel = 'normal'): Promise<any> => {
     if (!recipients.length || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
 
     const isMultipleRecipients = recipients.length > 1;
@@ -880,7 +911,7 @@ export class WalletService {
 
     console.log('Total Amount:', totalAmountSat, 'Satoshis');
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-    const feeRate = await this.currentFeeRate();
+    const feeRate = await this.currentFeeRate(feeLevel);
 
 
     const inputSize = 68; // Assuming P2WPKH

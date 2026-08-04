@@ -143,6 +143,26 @@
           label="Amount" [(ngModel)]="amount"
           [helperText]="getAmountHelperText(amount)"></ion-input>
       </ion-item>
+      <ion-item [lines]="feeRates ? 'none' : 'full'">
+        <ion-select justify="space-between"
+                    [disabled]="showProgress"
+                    [(ngModel)]="feeLevel" label="Fee" placeholder="Select fee level">
+          <ion-select-option value="economic">
+            Economic (slower)
+          </ion-select-option>
+          <ion-select-option value="normal">
+            Normal
+          </ion-select-option>
+          <ion-select-option value="priority">
+            Priority (faster)
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item lines="full" *ngIf="feeRates">
+        <ion-note slot="end" class="ion-text-caption">
+          ≈ {{ getFeeRateStr(feeLevel) }}
+        </ion-note>
+      </ion-item>
       <ion-item>
         <ion-textarea label="Message" [disabled]="showProgress" [(ngModel)]="message"></ion-textarea>
       </ion-item>
