@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import * as bip39 from 'bip39';
 import BIP32Factory from 'bip32';
 import * as ecc from '@bitcoinerlab/secp256k1';
@@ -6,6 +6,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import {Preferences} from '@capacitor/preferences';
 import {IS_TESTNET, API_ENDPOINT} from '../../constants';
 import {CapacitorHttp, HttpResponse} from '@capacitor/core';
+import {CryptoService, EncryptedPayload} from '../crypto/crypto.service';
 
 export type Network = 'testnet' | 'livenet';
 type TransactionType = 'sent' | 'received' | 'moved';
@@ -54,7 +55,15 @@ export interface ProposeTransaction {
 export type ProposeTransactionObj = ProposeTransaction | undefined;
 
 export interface Wallet {
-  mnemonic: string | undefined;
+  // Account-level public key (m/84'/coin'/0'), used to derive addresses
+  // without exposing the private key. Absent on legacy wallets.
+  xpub?: string;
+  // Account-level private key (m/84'/coin'/0'), encrypted with the user PIN.
+  // Only decrypted to sign transactions. Absent on legacy wallets.
+  encryptedXprv?: EncryptedPayload;
+  // Legacy only: plaintext seed phrase from wallets created before the
+  // xpub/encryptedXprv migration. New wallets never persist this.
+  mnemonic?: string;
   name: string | undefined;
   network: Network;
   balance: number | undefined;
@@ -147,6 +156,7 @@ export class WalletService {
   public wallet: Wallet | undefined;
   private WALLET_STORAGE: string = 'wallet';
   private bip32 = BIP32Factory(ecc);
+  private cryptoService = inject(CryptoService);
 
   private cachedFeeRates: Record<string, number> | null = null;
   private lastFetch: number = 0;
@@ -184,61 +194,98 @@ export class WalletService {
     }).address;
   };
 
-  public createWallet = async (
+  // Generate a fresh BIP39 mnemonic. It is kept in memory by the caller (the
+  // backup screen) and only turned into a persisted wallet by finalizeCreate,
+  // so the phrase itself is never written to storage.
+  public generateNewMnemonic = (): string => {
+    return bip39.generateMnemonic();
+  };
+
+  // Derive xpub + PIN-encrypted xprv from a mnemonic and persist the wallet
+  // WITHOUT the mnemonic. Shared by create (finalizeCreate) and import.
+  private buildAndSaveWallet = async (
+    mnemonic: string,
     name: string,
-  ): Promise<{
-    mnemonic: string;
-    address: string | undefined;
-  }> => {
-    // Generate a new BIP39 mnemonic
-    const mnemonic: string = bip39.generateMnemonic();
-
-    // Derive a BIP32 seed from the mnemonic
-    const seed = await bip39.mnemonicToSeedSync(mnemonic);
-
-    // Use the seed to create a BIP32 HD wallet
-    const root = this.bip32.fromSeed(seed);
-
-    // Get the derivation path to use for the external wallet addresses
-    const derivePath = this.getDerivationPath(0, 0, IS_TESTNET);
-
-    // Get the first external receive address from the HD wallet
-    const addressNode = root.derivePath(derivePath);
-    const publicKey = addressNode.publicKey;
-
-    const address = this.getAddress(publicKey, IS_TESTNET);
-
-    if (!address) throw new Error('Could not generate address');
-
-    // Save the mnemonic and address to storage
+    pin: string,
+    addresses: Address[],
+    balance: number,
+  ) => {
+    const accountNode = this.accountNodeFromMnemonic(mnemonic, IS_TESTNET);
+    const xpub = accountNode.neutered().toBase58();
+    const xprv = accountNode.toBase58();
+    const encryptedXprv = await this.cryptoService.encrypt(xprv, pin);
     this.wallet = {
-      mnemonic,
+      xpub,
+      encryptedXprv,
       name,
-      balance: 0,
-      balanceStr: '0 BTC',
+      balance,
+      balanceStr: this.satoshisToBtc(balance) + ' BTC',
       network: IS_TESTNET ? 'testnet' : 'livenet',
-      addresses: [
-        {
-          address: address,
-          balance: 0,
-          index: 0,
-          change: 0,
-        },
-      ],
+      addresses,
       transactions: [],
     };
     await this.saveWallet();
+  };
 
-    // Return the mnemonic and address as an object
-    return {
-      mnemonic: mnemonic,
-      address: address,
-    };
+  // Finalize a newly created wallet: derive the first receive address (no
+  // network scan needed for a brand-new wallet), encrypt the key with the PIN
+  // and persist. The mnemonic is discarded by the caller afterwards.
+  public finalizeCreate = async (
+    mnemonic: string,
+    name: string,
+    pin: string,
+  ): Promise<void> => {
+    if (!bip39.validateMnemonic(mnemonic)) {
+      throw new Error('Invalid mnemonic');
+    }
+    const accountNode = this.accountNodeFromMnemonic(mnemonic, IS_TESTNET);
+    const addressNode = accountNode.derive(0).derive(0);
+    const address = this.getAddress(addressNode.publicKey, IS_TESTNET);
+    if (!address) throw new Error('Could not generate address');
+    await this.buildAndSaveWallet(
+      mnemonic,
+      name,
+      pin,
+      [{address, balance: 0, index: 0, change: 0}],
+      0,
+    );
+  };
+
+  // Whether signing requires a PIN (true for wallets migrated to the
+  // xpub/encryptedXprv model; false for legacy mnemonic-only wallets).
+  public requiresPin = (): boolean => {
+    return !!this.wallet?.encryptedXprv;
+  };
+
+  // True for old wallets that still hold the plaintext mnemonic and can be
+  // migrated to the encrypted model.
+  public isLegacyWallet = (): boolean => {
+    return !!this.wallet?.mnemonic && !this.wallet?.encryptedXprv;
+  };
+
+  // Migrate a legacy wallet in place: derive xpub + PIN-encrypted xprv from the
+  // stored mnemonic, then drop the mnemonic. Addresses/transactions are kept.
+  public migrateLegacyWallet = async (pin: string): Promise<void> => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    if (!this.wallet.mnemonic) throw new Error('Nothing to migrate');
+    const isTestnet = this.wallet.network === 'testnet';
+    const accountNode = this.accountNodeFromMnemonic(
+      this.wallet.mnemonic,
+      isTestnet,
+    );
+    this.wallet.xpub = accountNode.neutered().toBase58();
+    this.wallet.encryptedXprv = await this.cryptoService.encrypt(
+      accountNode.toBase58(),
+      pin,
+    );
+    delete this.wallet.mnemonic;
+    await this.saveWallet();
   };
 
   public importWallet = async (
     mnemonic: string,
     name: string,
+    pin: string,
   ): Promise<{
     wallet: Wallet | undefined;
   }> => {
@@ -295,17 +342,14 @@ export class WalletService {
       0,
     );
 
-    // Save the mnemonic and address to storage
-    this.wallet = {
+    // Persist as xpub + PIN-encrypted xprv; the mnemonic is never stored.
+    await this.buildAndSaveWallet(
       mnemonic,
       name,
-      balance: totalBalance,
-      balanceStr: this.satoshisToBtc(totalBalance) + ' BTC',
-      network: IS_TESTNET ? 'testnet' : 'livenet',
-      addresses: newAddresses,
-      transactions: [],
-    };
-    await this.saveWallet();
+      pin,
+      newAddresses,
+      totalBalance,
+    );
 
     // Return wallet obj
     return this.wallet ? {wallet: this.wallet} : {wallet: undefined};
@@ -356,6 +400,59 @@ export class WalletService {
   ) => {
     // m / purpose' / coin_type' / account' / change / address_index
     return `m/84'/${isTestnet ? 1 : 0}'/0'/${change}/${index}`;
+  };
+
+  // Account-level path (without the change/index suffix). The node at this path
+  // is what we serialize as xpub/xprv so signing derives the remaining
+  // change/index levels from it.
+  private getAccountPath = (isTestnet: boolean = false) => {
+    return `m/84'/${isTestnet ? 1 : 0}'/0'`;
+  };
+
+  // Derive the account node (m/84'/coin'/0') from a mnemonic. Used both when
+  // creating xpub/xprv material and as the legacy fallback for wallets that
+  // still store the raw mnemonic.
+  private accountNodeFromMnemonic = (mnemonic: string, isTestnet: boolean) => {
+    const root = this.bip32.fromSeed(bip39.mnemonicToSeedSync(mnemonic));
+    return root.derivePath(this.getAccountPath(isTestnet));
+  };
+
+  // Public-only account node for address derivation (receive + change).
+  // Never touches the private key, so it needs no PIN.
+  private getPubNode = () => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    if (this.wallet.xpub) {
+      return this.bip32.fromBase58(this.wallet.xpub);
+    }
+    // Legacy fallback: derive from the stored mnemonic.
+    if (this.wallet.mnemonic) {
+      const isTestnet = this.wallet.network === 'testnet';
+      return this.accountNodeFromMnemonic(this.wallet.mnemonic, isTestnet);
+    }
+    throw new Error('Wallet has no public key material');
+  };
+
+  // Private account node for signing. Requires the PIN to decrypt the xprv,
+  // except on legacy wallets that still hold the mnemonic in the clear.
+  private getSigningNode = async (pin?: string) => {
+    if (!this.wallet) throw new Error('Wallet not initialized');
+    if (this.wallet.encryptedXprv) {
+      if (!pin) throw new Error('PIN required');
+      let xprv: string;
+      try {
+        xprv = await this.cryptoService.decrypt(this.wallet.encryptedXprv, pin);
+      } catch {
+        // AES-GCM authentication failure => wrong PIN (or tampered data).
+        throw new Error('Incorrect PIN');
+      }
+      return this.bip32.fromBase58(xprv);
+    }
+    // Legacy fallback: derive from the stored mnemonic.
+    if (this.wallet.mnemonic) {
+      const isTestnet = this.wallet.network === 'testnet';
+      return this.accountNodeFromMnemonic(this.wallet.mnemonic, isTestnet);
+    }
+    throw new Error('Wallet has no signing key material');
   };
 
   private getTransactionsByAddress = async (
@@ -651,14 +748,9 @@ export class WalletService {
   };
 
   private createAddress = async (index: number, change: number) => {
-    if (!this.wallet || !this.wallet.mnemonic)
-      throw new Error('Wallet not initialized');
-    const root = this.bip32.fromSeed(
-      bip39.mnemonicToSeedSync(this.wallet.mnemonic),
-    );
+    if (!this.wallet) throw new Error('Wallet not initialized');
     const isTestnet = this.wallet.network === 'testnet';
-    const derivePath = this.getDerivationPath(index, change, isTestnet);
-    const addressNode = root.derivePath(derivePath);
+    const addressNode = this.getPubNode().derive(change).derive(index);
     const publicKey = addressNode.publicKey;
     const address = this.getAddress(publicKey, isTestnet);
     if (!address) throw new Error('Could not generate address');
@@ -773,9 +865,9 @@ export class WalletService {
     to: string,
     message: string,
     feeLevel: FeeLevel = 'normal',
+    pin?: string,
   ): Promise<any> => {
-    if (!to || !this.wallet || !this.wallet.mnemonic)
-      throw new Error('Wallet not initialized');
+    if (!to || !this.wallet) throw new Error('Wallet not initialized');
 
     const utxos = await this.getUTXOs();
     const balanceSat = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
@@ -801,9 +893,7 @@ export class WalletService {
         : bitcoin.networks.bitcoin;
     const isTestnet = this.wallet.network === 'testnet';
     const psbt = new bitcoin.Psbt({network: network});
-    const root = this.bip32.fromSeed(
-      await bip39.mnemonicToSeedSync(this.wallet.mnemonic),
-    );
+    const signingNode = await this.getSigningNode(pin);
 
     const utxoScriptTypes: {[key: string]: ScriptType} = {};
     utxos.forEach((utxo: any) => {
@@ -849,7 +939,7 @@ export class WalletService {
           isTestnet,
         );
         console.log('Derivation Path:', derivationPath);
-        const keyPair = root.derivePath(derivationPath);
+        const keyPair = signingNode.derive(utxoChange).derive(utxoIndex);
         console.log('Derived public key:', keyPair.publicKey.toString('hex'));
         const derivedPubKey = keyPair.publicKey.toString('hex');
         const scriptPubKey = bitcoin.address
@@ -893,8 +983,8 @@ export class WalletService {
     }
   };
 
-  public createTx = async (recipients: TxRecipient[], message: string, feeLevel: FeeLevel = 'normal'): Promise<any> => {
-    if (!recipients.length || !this.wallet || !this.wallet.mnemonic) throw new Error('Wallet not initialized');
+  public createTx = async (recipients: TxRecipient[], message: string, feeLevel: FeeLevel = 'normal', pin?: string): Promise<any> => {
+    if (!recipients.length || !this.wallet) throw new Error('Wallet not initialized');
 
     const isMultipleRecipients = recipients.length > 1;
 
@@ -938,9 +1028,7 @@ export class WalletService {
     const psbt = new bitcoin.Psbt({
       network: isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin,
     });
-    const root = this.bip32.fromSeed(
-      await bip39.mnemonicToSeedSync(this.wallet.mnemonic),
-    );
+    const signingNode = await this.getSigningNode(pin);
 
     const utxoScriptTypes: {[key: string]: ScriptType} = {};
     utxos.forEach((utxo: any) => {
@@ -999,7 +1087,7 @@ export class WalletService {
           isTestnet,
         );
         console.log('Derivation Path:', derivationPath);
-        const keyPair = root.derivePath(derivationPath);
+        const keyPair = signingNode.derive(utxoChange).derive(utxoIndex);
         console.log('Derived public key:', keyPair.publicKey.toString('hex'));
         const derivedPubKey = keyPair.publicKey.toString('hex');
         const scriptPubKey = bitcoin.address

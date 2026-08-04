@@ -17,13 +17,93 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-card *ngIf="walletService.wallet">
+  <!-- First-time backup, step 1: show the words -->
+  <ion-card *ngIf="firstTime && !verifying">
     <ion-card-header>
       <ion-card-title>Recovery 12 words</ion-card-title>
-      <ion-card-subtitle>Keep this mnemonic safe. It is the only way to recover your wallet. If you lose it, you lose your wallet.</ion-card-subtitle>
+      <ion-card-subtitle>Write these words down and keep them somewhere safe and offline. This is the only way to recover your wallet. Anyone with these words can steal your funds.</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <app-backup-component [mnemonic]="walletService.wallet.mnemonic"></app-backup-component>
+      <app-backup-component [mnemonic]="firstTimeMnemonic"></app-backup-component>
+      <ion-button
+        expand="block"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="showProgress"
+        (click)="startVerification()">
+        I've backed them up — remove from this device
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- First-time backup, step 2: verify a few words before deleting -->
+  <ion-card *ngIf="firstTime && verifying">
+    <ion-card-header>
+      <ion-card-title>Confirm your backup</ion-card-title>
+      <ion-card-subtitle>Enter the following words from your recovery phrase to confirm you saved it. Once removed, it cannot be shown again.</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let idx of verifyIndices">
+          <ion-input
+            [label]="'Word #' + (idx + 1)"
+            [(ngModel)]="verifyInputs[idx]"
+            autocapitalize="off"
+            autocorrect="off"
+            [disabled]="showProgress"
+            placeholder="Enter word">
+          </ion-input>
+        </ion-item>
+      </ion-list>
+      <ion-button
+        expand="block"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="showProgress"
+        (click)="verifyWords()">
+        Confirm & remove from this device
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="clear"
+        [disabled]="showProgress"
+        (click)="cancelVerification()">
+        Show words again
+      </ion-button>
+      <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Legacy wallet: phrase still on device, offer to remove it -->
+  <ion-card *ngIf="!firstTime && walletService.wallet?.mnemonic">
+    <ion-card-header>
+      <ion-card-title>Recovery 12 words</ion-card-title>
+      <ion-card-subtitle>Write these words down and keep them offline. Anyone with them can steal your funds. For better security you can remove them from this device once saved.</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <app-backup-component [mnemonic]="walletService.wallet?.mnemonic"></app-backup-component>
+      <ion-button
+        expand="block"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="showProgress"
+        (click)="migrateWallet()">
+        Remove recovery phrase from this device
+      </ion-button>
+      <ion-progress-bar *ngIf="showProgress" type="indeterminate"></ion-progress-bar>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Secured wallet: phrase is not stored on the device -->
+  <ion-card *ngIf="!firstTime && walletService.wallet && !walletService.wallet.mnemonic">
+    <ion-card-header>
+      <ion-card-title>Recovery phrase</ion-card-title>
+      <ion-card-subtitle>Your recovery phrase is not stored on this device — this is recommended. Keep your written backup safe: it is the only way to restore this wallet.</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>The 12 words were removed from this device for security. Your wallet still signs transactions using a key protected by your PIN.</p>
+      </ion-text>
     </ion-card-content>
   </ion-card>
 

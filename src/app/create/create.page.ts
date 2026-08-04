@@ -24,18 +24,12 @@ export class CreatePage {
   public showProgress: boolean = false;
 
   submitRequest() {
-    console.log(`Name: ${this.name}`);
-    console.log(`Network: ${this.selectedNetwork}`);
-
-    this.showProgress = true;
-    // Create wallet
-    this.walletService.createWallet(this.name).then(async (wallet) => {
-      console.log('Wallet created', wallet);
-      this.showProgress = false;
-      await this.toastService.presentToast('Wallet created successfully');
+    // Generate the recovery phrase in memory only. Nothing is persisted until
+    // the user confirms the backup and sets a PIN on the Backup screen.
+    const mnemonic = this.walletService.generateNewMnemonic();
+    this.router.navigate(['/tabs/settings/backup'], {
+      state: {firstTime: true, mnemonic, name: this.name},
     });
-
-    this.router.navigate(['/tabs/home']);
   }
 
 }

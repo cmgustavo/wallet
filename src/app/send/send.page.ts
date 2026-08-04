@@ -25,6 +25,7 @@ import {ThemeService} from '../services/theme/theme.service';
 import {RateResponse, RateService} from '../services/rates/rates.service';
 import {wallet} from 'ionicons/icons';
 import {ToastService} from '../services/toast/toast.service';
+import {PinService} from '../services/pin/pin.service';
 
 @Component({
     selector: 'app-send',
@@ -40,6 +41,7 @@ export class SendPage implements OnInit {
   addressbookService = inject(AddressbookService);
   themeService = inject(ThemeService);
   private toastService = inject(ToastService);
+  private pinService = inject(PinService);
   rateService = inject(RateService);
 
   public showProgress: boolean = false;
@@ -215,10 +217,18 @@ export class SendPage implements OnInit {
           role: 'selected',
           icon: 'send',
           handler: async () => {
-            this.showProgress = true;
             await actionSheet.dismiss();
+            let pin: string | undefined;
+            if (this.walletService.requiresPin()) {
+              const entered = await this.pinService.enterPin(
+                'Enter your PIN to sign',
+              );
+              if (!entered) return;
+              pin = entered;
+            }
+            this.showProgress = true;
             this.walletService
-              .sendMax(this.to, this.message, this.feeLevel)
+              .sendMax(this.to, this.message, this.feeLevel, pin)
               .then(async tx => {
                 console.log('Transaction Proposal created', tx);
                 this.showProgress = false;
@@ -337,14 +347,23 @@ export class SendPage implements OnInit {
           role: 'selected',
           icon: 'send',
           handler: async () => {
-            this.showProgress = true;
             await actionSheet.dismiss();
+            let pin: string | undefined;
+            if (this.walletService.requiresPin()) {
+              const entered = await this.pinService.enterPin(
+                'Enter your PIN to sign',
+              );
+              if (!entered) return;
+              pin = entered;
+            }
+            this.showProgress = true;
             try {
               const tx =
                 (await this.walletService.createTx(
                   this.recipients,
                   this.message,
                   this.feeLevel,
+                  pin,
                 )) || {};
               console.log('Transaction Proposal created', tx);
               this.showProgress = false;

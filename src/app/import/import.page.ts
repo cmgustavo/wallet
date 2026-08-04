@@ -6,6 +6,7 @@ import {Network, WalletService} from "../services/wallet/wallet.service";
 import {Router} from "@angular/router";
 import {IS_TESTNET} from "../constants";
 import {ToastService} from "../services/toast/toast.service";
+import {PinService} from "../services/pin/pin.service";
 
 @Component({
     selector: 'app-import',
@@ -16,6 +17,7 @@ import {ToastService} from "../services/toast/toast.service";
 export class ImportPage {
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private pinService = inject(PinService);
   walletService = inject(WalletService);
   platform = inject(Platform);
 
@@ -25,16 +27,19 @@ export class ImportPage {
   public showProgress: boolean = false;
   public isDevice = this.platform.is('capacitor');
 
-  submitRequest() {
-    console.log(`Mnemonic: ${this.mnemonic}`);
+  async submitRequest() {
     console.log(`Name: ${this.name}`);
     console.log(`Network: ${this.selectedNetwork}`);
 
+    // Ask for a PIN before scanning: it encrypts the private key so the
+    // imported recovery phrase is never stored in the clear.
+    const pin = await this.pinService.setPin();
+    if (!pin) return;
+
     this.showProgress = true;
 
-    // Import wallet
-    this.walletService.importWallet(this.mnemonic, this.name).then(async (wallet) => {
-      console.log('Wallet imported', wallet);
+    try {
+      await this.walletService.importWallet(this.mnemonic, this.name, pin);
       console.log('Updating wallet balance');
       await this.walletService.updateTotalBalance();
       console.log('Updating wallet transactions');
@@ -43,13 +48,12 @@ export class ImportPage {
       this.mnemonic = '';
       await this.toastService.presentToast('Wallet imported successfully');
       await this.router.navigate(['/tabs/home']);
-    }).catch(async error => {
+    } catch (error) {
       console.log('Error importing wallet', error);
       await this.toastService.presentToast('Error importing wallet');
       this.showProgress = false;
       this.mnemonic = '';
-    });
-
+    }
   }
 
 }
