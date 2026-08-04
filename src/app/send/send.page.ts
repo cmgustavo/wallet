@@ -252,6 +252,24 @@ export class SendPage implements OnInit {
     this.amount = 0;
   }
 
+  public shortAddress(address: string | undefined): string {
+    if (!address) {
+      return '';
+    }
+    if (address.length <= 12) {
+      return address;
+    }
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+  }
+
+  public getRecipientLabel(address: string | undefined): string {
+    if (!address) {
+      return '';
+    }
+    const contactName = this.contacts?.[address];
+    return contactName || this.shortAddress(address);
+  }
+
   public removeRecipient(index: number) {
     this.recipients.splice(index, 1);
   }

@@ -51,7 +51,7 @@
             <ion-icon name="person-circle" class="contact-avatar"></ion-icon>
           </ion-avatar>
           <ion-label>
-            {{ recipient.address }}
+            {{ getRecipientLabel(recipient.address) }}
           </ion-label>
           <ion-note slot="end" class="recipient-note">
             {{ recipient.amount }} BTC
@@ -165,7 +165,7 @@
             </ion-avatar>
             <ion-label>
               <ion-text color="medium">
-                {{ recipient.address }}
+                {{ getRecipientLabel(recipient.address) }}
                 <div *ngIf="!useTotalAmount">
                   <strong>{{ recipient.amount }} BTC </strong>
                   <span>({{ getFiatRateBtc(recipient.amount) }})</span>
