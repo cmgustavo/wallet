@@ -46,6 +46,7 @@ export class SendPage implements OnInit {
   public amount: number;
   public message: string;
   public useTotalAmount: boolean = true;
+  public acknowledgeCreateOnly: boolean = false;
   public contacts: AddressBook = {};
   public proposal: ProposeTransactionObj;
   public fiatRate: RateResponse = undefined;
@@ -156,6 +157,7 @@ export class SendPage implements OnInit {
     this.message = '';
     this.recipients = [];
     this.useTotalAmount = true;
+    this.acknowledgeCreateOnly = false;
   }
 
   async presentAlert(error: string) {

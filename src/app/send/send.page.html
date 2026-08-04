@@ -175,16 +175,28 @@
                 </div>
               </ion-text>
             </ion-label>
-            <ion-button *ngIf="!useTotalAmount" fill="clear" color="danger" (click)="removeRecipient(index)">
+            <ion-button slot="end" *ngIf="!useTotalAmount" fill="clear" color="danger" (click)="removeRecipient(index)">
               <ion-icon name="trash-outline" class="icon-remove-recipient"></ion-icon>
             </ion-button>
           </ion-item>
         </ion-list>
       </div>
 
+      <ion-item lines="none" class="acknowledge-item"
+                *ngIf="recipients.length > 0 || (to && useTotalAmount)">
+        <ion-checkbox slot="start" [(ngModel)]="acknowledgeCreateOnly"
+                      [disabled]="showProgress"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+          <ion-text color="medium">
+            This only creates the transaction from your available funds. No funds
+            are sent yet — you send them in the next step with <strong>Broadcast</strong>.
+          </ion-text>
+        </ion-label>
+      </ion-item>
+
       <ion-button class="ion-margin" expand="block"
                   *ngIf="recipients.length > 0 || (to && useTotalAmount)"
-                  [disabled]="showProgress"
+                  [disabled]="showProgress || !acknowledgeCreateOnly"
                   (click)="useTotalAmount ? sendMax() : createTransaction()">Create Transaction
       </ion-button>
     </ion-list>
