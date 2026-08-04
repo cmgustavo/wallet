@@ -102,6 +102,17 @@ export class SendPage implements OnInit {
     return this.rateService.fiatCurrencyStr(satoshi);
   }
 
+  getAmountHelperText(btc: number | undefined) {
+    if (!btc) {
+      return 'Enter an amount in BTC';
+    }
+    const fiat = this.getFiatRateBtc(btc);
+    if (!fiat) {
+      return 'Exchange rate unavailable';
+    }
+    return `≈ ${fiat} USD`;
+  }
+
   async openModalContacts() {
     this.contacts = (await this.addressbookService.getAddressBook()) || {};
     const contactsButton = Object.keys(this.contacts).map(address => {
