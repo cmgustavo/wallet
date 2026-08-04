@@ -182,6 +182,15 @@
         </ion-list>
       </div>
 
+      <ion-item lines="full" class="total-estimate-item"
+                *ngIf="recipients.length > 0 || (to && useTotalAmount)">
+        <ion-label color="medium">Estimated Total</ion-label>
+        <ion-note slot="end" class="total-estimate-note">
+          <strong>{{ getTotalBtcStr() }} BTC</strong>
+          <div class="fiat ion-text-end ion-text-caption">{{ getTotalFiatStr() }}</div>
+        </ion-note>
+      </ion-item>
+
       <ion-item lines="none" class="acknowledge-item"
                 *ngIf="recipients.length > 0 || (to && useTotalAmount)">
         <ion-checkbox slot="start" [(ngModel)]="acknowledgeCreateOnly"

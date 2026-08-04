@@ -227,6 +227,25 @@ export class SendPage implements OnInit {
     await actionSheet.present();
   }
 
+  public getTotalSatoshi(): number {
+    if (this.useTotalAmount) {
+      return this.walletService.wallet?.balance || 0;
+    }
+    const totalBtc = this.recipients.reduce(
+      (sum, recipient) => sum + (recipient.amount || 0),
+      0,
+    );
+    return Math.round(totalBtc * 1e8); // 1 BTC = 100,000,000 Satoshis
+  }
+
+  public getTotalBtcStr(): string {
+    return (this.getTotalSatoshi() / 1e8).toFixed(8);
+  }
+
+  public getTotalFiatStr(): string {
+    return this.rateService.fiatCurrencyStr(this.getTotalSatoshi());
+  }
+
   public addRecipient() {
     this.recipients.push({address: this.to, amount: this.amount});
     this.to = '';
