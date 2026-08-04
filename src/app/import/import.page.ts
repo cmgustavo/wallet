@@ -31,28 +31,37 @@ export class ImportPage {
     console.log(`Name: ${this.name}`);
     console.log(`Network: ${this.selectedNetwork}`);
 
+    // Capture the phrase and clear it from the screen right away, so it isn't
+    // left visible on the device while the (slow) network scan runs.
+    const mnemonic = this.mnemonic.trim();
+    this.mnemonic = '';
+
     // Ask for a PIN before scanning: it encrypts the private key so the
     // imported recovery phrase is never stored in the clear.
     const pin = await this.pinService.setPin();
-    if (!pin) return;
+    if (!pin) {
+      // Cancelled: restore the phrase so the user can keep editing.
+      this.mnemonic = mnemonic;
+      return;
+    }
 
     this.showProgress = true;
 
     try {
-      await this.walletService.importWallet(this.mnemonic, this.name, pin);
+      await this.walletService.importWallet(mnemonic, this.name, pin);
       console.log('Updating wallet balance');
       await this.walletService.updateTotalBalance();
       console.log('Updating wallet transactions');
       await this.walletService.updateTransactions();
       this.showProgress = false;
-      this.mnemonic = '';
       await this.toastService.presentToast('Wallet imported successfully');
       await this.router.navigate(['/tabs/home']);
     } catch (error) {
       console.log('Error importing wallet', error);
-      await this.toastService.presentToast('Error importing wallet');
       this.showProgress = false;
-      this.mnemonic = '';
+      // Restore so a typo can be fixed; the scan is over, nothing is lingering.
+      this.mnemonic = mnemonic;
+      await this.toastService.presentToast('Error importing wallet');
     }
   }
 

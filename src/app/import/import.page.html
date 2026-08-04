@@ -31,8 +31,14 @@
             <ion-select-option value="testnet">Testnet</ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item>
-          <ion-textarea label="12 Words" [(ngModel)]="mnemonic" [disabled]="showProgress"></ion-textarea>
+        <ion-item *ngIf="!showProgress">
+          <ion-textarea label="12 Words" [(ngModel)]="mnemonic"></ion-textarea>
+        </ion-item>
+        <ion-item *ngIf="showProgress" lines="none">
+          <ion-label class="ion-text-wrap">
+            <p>Importing your wallet…</p>
+            <ion-note>Your recovery phrase was cleared from the screen for security.</ion-note>
+          </ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>
