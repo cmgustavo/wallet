@@ -246,6 +246,26 @@ export class SendPage implements OnInit {
     return this.rateService.fiatCurrencyStr(this.getTotalSatoshi());
   }
 
+  public getAvailableBalanceSatoshi(): number {
+    return this.walletService.wallet?.balance || 0;
+  }
+
+  public isExceedingBalance(): boolean {
+    return this.getTotalSatoshi() > this.getAvailableBalanceSatoshi();
+  }
+
+  public getExcessSatoshi(): number {
+    return Math.max(0, this.getTotalSatoshi() - this.getAvailableBalanceSatoshi());
+  }
+
+  public getExcessBtcStr(): string {
+    return (this.getExcessSatoshi() / 1e8).toFixed(8);
+  }
+
+  public getExcessFiatStr(): string {
+    return this.rateService.fiatCurrencyStr(this.getExcessSatoshi());
+  }
+
   public addRecipient() {
     this.recipients.push({address: this.to, amount: this.amount});
     this.to = '';

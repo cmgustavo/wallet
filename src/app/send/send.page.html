@@ -185,10 +185,24 @@
       <ion-item lines="full" class="total-estimate-item"
                 *ngIf="recipients.length > 0 || (to && useTotalAmount)">
         <ion-label color="medium">Estimated Total</ion-label>
-        <ion-note slot="end" class="total-estimate-note">
+        <ion-note slot="end" class="total-estimate-note"
+                  [color]="isExceedingBalance() ? 'danger' : undefined">
           <strong>{{ getTotalBtcStr() }} BTC</strong>
           <div class="fiat ion-text-end ion-text-caption">{{ getTotalFiatStr() }}</div>
         </ion-note>
+      </ion-item>
+
+      <ion-item lines="none" class="exceeds-balance-item"
+                *ngIf="(recipients.length > 0 || (to && useTotalAmount)) && isExceedingBalance()">
+        <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <ion-text color="danger">
+            This exceeds your available balance
+            (<strong>{{ (getAvailableBalanceSatoshi() / 1e8).toFixed(8) }} BTC</strong>)
+            by <strong>{{ getExcessBtcStr() }} BTC</strong> ({{ getExcessFiatStr() }}).
+            Your balance may be out of date — you can still create the transaction.
+          </ion-text>
+        </ion-label>
       </ion-item>
 
       <ion-item lines="none" class="acknowledge-item"
